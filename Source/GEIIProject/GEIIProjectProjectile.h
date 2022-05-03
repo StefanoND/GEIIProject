@@ -33,5 +33,14 @@ public:
 	USphereComponent* GetCollisionComp() const { return CollisionComp; }
 	/** Returns ProjectileMovement subobject **/
 	UProjectileMovementComponent* GetProjectileMovement() const { return ProjectileMovement; }
+
+protected:
+	/** Assigns the Blueprint reference that will be spawned */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class AActor> PortalBlueprintReference;
+
+	/** Spawns the Portal */
+	UFUNCTION(BlueprintCallable, Category = "Portal", meta = (AllowPrivateAcces = "true"))
+	void SpawnPortal(UPrimitiveComponent* Component);
 };
 

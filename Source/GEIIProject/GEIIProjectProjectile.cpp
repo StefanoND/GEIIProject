@@ -34,10 +34,43 @@ AGEIIProjectProjectile::AGEIIProjectProjectile()
 void AGEIIProjectProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	// Only add impulse and destroy projectile if we hit a physics
-	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && OtherComp->IsSimulatingPhysics())
+	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr))
 	{
-		OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
+		if(!OtherComp->ComponentHasTag(TEXT("PortalWall")))
+		{
+			OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
+		}
+		if(OtherComp->ComponentHasTag(TEXT("PortalWall")))
+		{
+			SpawnPortal(OtherComp);
+		}
+		if(OtherComp->IsSimulatingPhysics())
+		{
+			Destroy();
+		}
+	}
+}
 
-		Destroy();
+void AGEIIProjectProjectile::SpawnPortal(UPrimitiveComponent* Component)
+{
+	// try and fire a projectile
+	if (PortalBlueprintReference != nullptr)
+	{
+		UWorld* const World = GetWorld();
+		
+		if (World != nullptr)
+		{
+			const FRotator SpawnRotation = Component->GetComponentRotation();
+			
+			// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
+			const FVector SpawnLocation = Component->GetComponentLocation();
+
+			//Set Spawn Collision Handling Override
+			FActorSpawnParameters ActorSpawnParams;
+			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+
+			// spawn the projectile at the muzzle
+			World->SpawnActor<AActor>(PortalBlueprintReference, SpawnLocation, SpawnRotation, ActorSpawnParams);
+		}
 	}
 }
