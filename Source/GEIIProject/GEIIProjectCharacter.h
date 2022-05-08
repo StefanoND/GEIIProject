@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GEIIProjectPortalComponent.h"
 #include "GameFramework/Character.h"
 #include "GEIIProjectCharacter.generated.h"
 
@@ -43,6 +44,10 @@ class AGEIIProjectCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FirstPersonCameraComponent;
 
+	/** Portal Component */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	UGEIIProjectPortalComponent* PortalComponent;
+
 public:
 	AGEIIProjectCharacter();
 
@@ -77,12 +82,18 @@ public:
 	/** Whether to use motion controller location for aiming. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	uint8 bUsingMotionControllers : 1;
-
+	
 protected:
 	
 	/** Fires a projectile. */
 	void OnFire();
 
+	/** Calls OnFire() method as a left-click */
+	void OnLeftClick();
+	
+	/** Calls OnFire() method as a right-click */
+	void OnRightClick();
+	
 	/** Handles moving forward/backward */
 	void MoveForward(float Val);
 

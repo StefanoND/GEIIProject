@@ -1,6 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "GEIIProjectCharacter.h"
+
 #include "GEIIProjectProjectile.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
@@ -71,6 +72,8 @@ AGEIIProjectCharacter::AGEIIProjectCharacter()
 
 	// Default offset from the character location for projectiles to spawn
 	GunOffset = FVector(100.0f, 0.0f, 10.0f);
+
+	PortalComponent = CreateDefaultSubobject<UGEIIProjectPortalComponent>(TEXT("PortalComponent"));
 }
 
 void AGEIIProjectCharacter::BeginPlay()
@@ -95,7 +98,8 @@ void AGEIIProjectCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
 	// Bind fire event
-	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AGEIIProjectCharacter::OnFire);
+	PlayerInputComponent->BindAction("FireBluePortal", IE_Pressed, this, &AGEIIProjectCharacter::OnLeftClick);
+	PlayerInputComponent->BindAction("FireRedPortal", IE_Pressed, this, &AGEIIProjectCharacter::OnRightClick);
 
 	// Bind movement events
 	PlayerInputComponent->BindAxis("MoveForward", this, &AGEIIProjectCharacter::MoveForward);
@@ -112,6 +116,8 @@ void AGEIIProjectCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 
 void AGEIIProjectCharacter::OnFire()
 {
+	//PortalComponent->TraceForward();
+	
 	// try and fire a projectile
 	if (ProjectileClass != nullptr)
 	{
@@ -147,6 +153,20 @@ void AGEIIProjectCharacter::OnFire()
 			AnimInstance->Montage_Play(FireAnimation, 1.f);
 		}
 	}
+}
+
+void AGEIIProjectCharacter::OnLeftClick()
+{
+	OnFire();
+	FVector Location = FirstPersonCameraComponent->GetComponentLocation();
+	FVector ForwardVector = FirstPersonCameraComponent->GetForwardVector();
+	PortalComponent->SpawnPortalAlongVector(Location, ForwardVector, true);
+}
+
+void AGEIIProjectCharacter::OnRightClick()
+{
+	OnFire();
+	PortalComponent->SpawnPortalAlongVector(FirstPersonCameraComponent->GetComponentLocation(), FirstPersonCameraComponent->GetForwardVector(), false);
 }
 
 void AGEIIProjectCharacter::MoveForward(float Value)

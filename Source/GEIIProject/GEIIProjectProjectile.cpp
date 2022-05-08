@@ -70,7 +70,7 @@ void AGEIIProjectProjectile::SpawnPortal(UPrimitiveComponent* Component)
 			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
 
 			// spawn the projectile at the muzzle
-			World->SpawnActor<AActor>(PortalBlueprintReference, SpawnLocation, SpawnRotation, ActorSpawnParams);
+			World->SpawnActor<AActor>(PortalBlueprintReference, FVector(SpawnLocation.X, SpawnLocation.Y, SpawnLocation.Z), SpawnRotation, ActorSpawnParams);
 		}
 	}
 }
