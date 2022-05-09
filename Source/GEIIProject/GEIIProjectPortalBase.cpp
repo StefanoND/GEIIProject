@@ -6,9 +6,11 @@
 #include "EngineUtils.h"
 #include "GEIIProjectCharacter.h"
 #include "GEIIProjectFunctionLibrary.h"
+#include "Camera/CameraComponent.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "GameFramework/PawnMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -101,7 +103,6 @@ void AGEIIProjectPortalBase::Tick(float DeltaTime)
 		FTransform PlayerCameraTransform = CameraTransformComponent->GetComponentTransform();
 		FTransform SceneComponentTransform = SceneComponentForCameraManager->GetComponentTransform();
 		
-		//FTransform RelativeTransform = UKismetMathLibrary::ConvertTransformToRelative(SceneComponentTransform, PlayerCameraTransform);
 		FTransform RelativeTransform = UKismetMathLibrary::MakeRelativeTransform(PlayerCameraTransform, SceneComponentTransform);
 		FVector RelativeLocation = RelativeTransform.GetLocation();
 		FQuat RelativeRotation = RelativeTransform.GetRotation();
@@ -111,6 +112,12 @@ void AGEIIProjectPortalBase::Tick(float DeltaTime)
 		float MinimumClippingPlane = CameraTransformComponent->GetComponentLocation().Distance(CameraTransformComponent->GetComponentLocation(), GetActorLocation()) + 1.0f;
 		
 		LinkedPortal->SceneCaptureComponent2D->CustomNearClippingPlane = MinimumClippingPlane;
+
+		for (AActor* Player : PlayersInPortal)
+		{
+			AGEIIProjectCharacter* PlayerCharacter = Cast<AGEIIProjectCharacter>(Player);
+			CheckIfPlayerShouldTeleport(PlayerCharacter);
+		}
 	}
 }
 
@@ -184,4 +191,63 @@ void AGEIIProjectPortalBase::LinkPortals(AGEIIProjectPortalBase* Portal)
 			LinkedPortal->PortalPlane->SetMaterial(0, DefaultPortalMaterial);
 		}
 	}
+}
+
+void AGEIIProjectPortalBase::CheckIfPlayerShouldTeleport(AGEIIProjectCharacter* PlayerCharacter)
+{
+	FVector PlayerLocation = PlayerCharacter->GetActorLocation();
+	FVector PlayerVelocity = PlayerCharacter->GetVelocity() * GetWorld()->GetDeltaSeconds();
+	FVector PlayerFutureLocation = PlayerLocation + PlayerVelocity;
+	FVector FromPortalToPlayerLocation = PlayerFutureLocation - GetActorLocation();
+
+	// If Player is behind portal and is actively moving forwards
+	if(FVector::DotProduct(FromPortalToPlayerLocation, GetActorForwardVector()) <= 0.0f &&
+	   FVector::DotProduct(PlayerCharacter->GetLastMovementInputVector(), GetActorForwardVector()) < 0.0f)
+	{
+		TeleportPlayer(PlayerCharacter);
+	}
+	
+}
+
+void AGEIIProjectPortalBase::TeleportPlayer(AGEIIProjectCharacter* PlayerCharacter)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Teleport"));
+
+	FTransform PlayerTransform = PlayerCharacter->GetActorTransform();
+	FVector PlayerVelocity = PlayerCharacter->GetVelocity();
+	
+	FVector RelativePlayerVelocity = UKismetMathLibrary::InverseTransformDirection(PlayerTransform, PlayerVelocity);
+
+	FTransform BackFacingSceneTransform = SceneComponentForCameraManager->GetComponentTransform();
+	FTransform PlayerCameraTransform = PlayerCharacter->GetFirstPersonCameraComponent()->GetComponentTransform();
+	
+	FTransform RelativeBackFacingSceneTransform = UKismetMathLibrary::MakeRelativeTransform(PlayerCameraTransform, BackFacingSceneTransform);
+	
+	FTransform LinkedPortalTransform = LinkedPortal->GetActorTransform();
+
+	FTransform ComposedTransform = RelativeBackFacingSceneTransform * LinkedPortalTransform;
+
+	FVector LinkedPortalForwardVector = LinkedPortal->GetActorForwardVector() * 10.0f;
+
+	FVector CameraRelativeLocation = ComposedTransform.GetLocation() - PlayerCharacter->GetFirstPersonCameraComponent()->GetRelativeLocation();
+	
+	FVector NewPlayerLocation = LinkedPortalForwardVector + CameraRelativeLocation;
+	
+	FQuat NewPlayerRotation = ComposedTransform.GetRotation();
+	
+	PlayerCharacter->SetActorLocation(NewPlayerLocation, false, nullptr, ETeleportType::ResetPhysics);
+
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+
+	FRotator PlayerRotator = FRotator(0.0f, NewPlayerRotation.Y, NewPlayerRotation.Z);
+
+	//PlayerCharacter->SetActorRelativeRotation(PlayerRotator);
+	
+	PlayerController->SetControlRotation(PlayerRotator);
+
+	FTransform NewPlayerTransform = FTransform(PlayerController->GetControlRotation(), PlayerCharacter->GetActorLocation());
+
+	FVector NewRelativePlayerVelocity = UKismetMathLibrary::TransformDirection(NewPlayerTransform, RelativePlayerVelocity);
+	
+	PlayerCharacter->GetMovementComponent()->Velocity = NewRelativePlayerVelocity;
 }

@@ -3,12 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GEIIProjectPortalWall.h"
 #include "Components/BoxComponent.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"
 #include "GEIIProjectPortalBase.generated.h"
+
+class AGEIIProjectCharacter;
+class AGEIIProjectPortalWall;
 
 UCLASS()
 class GEIIPROJECT_API AGEIIProjectPortalBase : public AActor
@@ -105,12 +107,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	FIntPoint ViewSize;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	TArray<AActor*> PlayersInPortal;
-	
-	/** Will rotate the Texture Render Target 2D to the player location so
-	 * it's not just showing a static image*/
-	//void RotatePortalView();
 
 public:	
 	// Called every frame
@@ -123,5 +121,11 @@ public:
 	/** Called when another actors stops overlapping with this actor */
 	UFUNCTION(BlueprintCallable, Category = "Portal")
 	void OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-	
+
+protected:
+	UFUNCTION(BlueprintCallable, Category = "Portal")
+	void CheckIfPlayerShouldTeleport(AGEIIProjectCharacter* PlayerCharacter);
+
+	UFUNCTION(BlueprintCallable, Category = "Portal")
+	void TeleportPlayer(AGEIIProjectCharacter* PlayerCharacter);
 };
