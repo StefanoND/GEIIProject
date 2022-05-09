@@ -4,9 +4,11 @@
 #include "GEIIProjectPortalBase.h"
 
 #include "EngineUtils.h"
+#include "GEIIProjectCharacter.h"
 #include "GEIIProjectFunctionLibrary.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Components/BoxComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -99,7 +101,8 @@ void AGEIIProjectPortalBase::Tick(float DeltaTime)
 		FTransform PlayerCameraTransform = CameraTransformComponent->GetComponentTransform();
 		FTransform SceneComponentTransform = SceneComponentForCameraManager->GetComponentTransform();
 		
-		FTransform RelativeTransform = UKismetMathLibrary::ConvertTransformToRelative(SceneComponentTransform, PlayerCameraTransform);
+		//FTransform RelativeTransform = UKismetMathLibrary::ConvertTransformToRelative(SceneComponentTransform, PlayerCameraTransform);
+		FTransform RelativeTransform = UKismetMathLibrary::MakeRelativeTransform(PlayerCameraTransform, SceneComponentTransform);
 		FVector RelativeLocation = RelativeTransform.GetLocation();
 		FQuat RelativeRotation = RelativeTransform.GetRotation();
 		
@@ -116,20 +119,21 @@ void AGEIIProjectPortalBase::OnOverlapBegin(UPrimitiveComponent* OverlappedComp,
 {
 	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, "Overlap being");
 	
-	/*if(LinkedPortal != nullptr)
+	if(LinkedPortal != nullptr)
 	{
 		AGEIIProjectCharacter* PlayerCharacter = Cast<AGEIIProjectCharacter>(OtherActor);
 
 		if(PlayerCharacter != nullptr)
 		{
 			int PlayerIndex = PlayersInPortal.AddUnique(PlayerCharacter);
+			
 			if(PlayerIndex != -1)
 			{
-				FName PortalPawn = "PortalPawn";
-				PlayerCharacter->GetCapsuleComponent()->SetCollisionProfileName(PortalPawn, true);
+				const FName PortalPawn = "PortalPawn";
+				PlayerCharacter->GetCapsuleComponent()->SetCollisionProfileName(PortalPawn);
 			}
 		}	
-	}*/
+	}
 }
 
 void AGEIIProjectPortalBase::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
@@ -137,14 +141,14 @@ void AGEIIProjectPortalBase::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, A
 {
 	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "Overlap end");
 
-	/*AGEIIProjectCharacter* PlayerCharacter = Cast<AGEIIProjectCharacter>(OtherActor);
+	AGEIIProjectCharacter* PlayerCharacter = Cast<AGEIIProjectCharacter>(OtherActor);
 	
 	if(PlayerCharacter != nullptr)
 	{
-		FName PortalPawn = "PortalPawn";
+		const FName PortalPawn = "Pawn";
 		PlayersInPortal.Remove(PlayerCharacter);
-		PlayerCharacter->GetCapsuleComponent()->SetCollisionProfileName(PortalPawn, true);
-	}*/
+		PlayerCharacter->GetCapsuleComponent()->SetCollisionProfileName(PortalPawn);
+	}
 }
 
 void AGEIIProjectPortalBase::SetPortal(bool bSetPortalIsBlue)

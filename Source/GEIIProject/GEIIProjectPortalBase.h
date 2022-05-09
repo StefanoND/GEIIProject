@@ -86,14 +86,14 @@ protected:
 	UTextureRenderTarget2D* RedPortalRenderTarget2D;
 
 	/** True if it's the Blue portal, False if it's the Red Portal */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "True", ExposeOnSpawn))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "True", ExposeOnSpawn))
 	bool bIsBluePortal;
 
 	/**  */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class AGEIIProjectPortalWall> PortalWallReference;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	AGEIIProjectPortalBase* LinkedPortal;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
@@ -104,9 +104,9 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	FIntPoint ViewSize;
-
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
-	//TArray<AGEIIProjectCharacter*> PlayersInPortal;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	TArray<AActor*> PlayersInPortal;
 	
 	/** Will rotate the Texture Render Target 2D to the player location so
 	 * it's not just showing a static image*/
