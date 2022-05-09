@@ -55,10 +55,6 @@ AActor* AGEIIProjectPortalWall::TryAddPortal(FVector PortalOrigin, bool bIsBlueP
 	{
 		AGEIIProjectPortalBase* PortalBlueprintReference;
 		
-		//Set Spawn Collision Handling Override
-		FActorSpawnParameters ActorSpawnParams;
-		ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		
 		FTransform PortalTransform;
 		PortalTransform.SetLocation(UKismetMathLibrary::TransformLocation(GetActorTransform(), RelativePortalOrigin));
 		FRotator PortalRotation = GetActorRotation();
@@ -66,7 +62,9 @@ AActor* AGEIIProjectPortalWall::TryAddPortal(FVector PortalOrigin, bool bIsBlueP
 
 		if(HasRoomForNewPortal(RelativePortalOrigin.Y, RelativePortalOrigin.Z))
 		{
-			PortalBlueprintReference = World->SpawnActorDeferred<AGEIIProjectPortalBase>(PortalBaseReference, PortalTransform);
+			PortalBlueprintReference = World->SpawnActorDeferred<AGEIIProjectPortalBase>(PortalBaseReference, PortalTransform,
+									   GetOwner(), GetInstigator(), ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+			
 			PortalBlueprintReference->SetPortal(bIsBluePortal);
 			PortalBlueprintReference->FinishSpawning(PortalTransform);
 			PortalsOnWall.Add(PortalBlueprintReference);

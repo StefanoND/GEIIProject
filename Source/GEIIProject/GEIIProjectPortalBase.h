@@ -6,7 +6,6 @@
 #include "GEIIProjectPortalWall.h"
 #include "Components/BoxComponent.h"
 #include "Engine/TextureRenderTarget2D.h"
-#include "Engine/TriggerBox.h"
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"
 #include "GEIIProjectPortalBase.generated.h"
@@ -105,6 +104,9 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	FIntPoint ViewSize;
+
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	//TArray<AGEIIProjectCharacter*> PlayersInPortal;
 	
 	/** Will rotate the Texture Render Target 2D to the player location so
 	 * it's not just showing a static image*/

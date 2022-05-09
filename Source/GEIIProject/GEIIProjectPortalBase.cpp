@@ -115,12 +115,36 @@ void AGEIIProjectPortalBase::OnOverlapBegin(UPrimitiveComponent* OverlappedComp,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, "Overlap being");
+	
+	/*if(LinkedPortal != nullptr)
+	{
+		AGEIIProjectCharacter* PlayerCharacter = Cast<AGEIIProjectCharacter>(OtherActor);
+
+		if(PlayerCharacter != nullptr)
+		{
+			int PlayerIndex = PlayersInPortal.AddUnique(PlayerCharacter);
+			if(PlayerIndex != -1)
+			{
+				FName PortalPawn = "PortalPawn";
+				PlayerCharacter->GetCapsuleComponent()->SetCollisionProfileName(PortalPawn, true);
+			}
+		}	
+	}*/
 }
 
 void AGEIIProjectPortalBase::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "Overlap end");
+
+	/*AGEIIProjectCharacter* PlayerCharacter = Cast<AGEIIProjectCharacter>(OtherActor);
+	
+	if(PlayerCharacter != nullptr)
+	{
+		FName PortalPawn = "PortalPawn";
+		PlayersInPortal.Remove(PlayerCharacter);
+		PlayerCharacter->GetCapsuleComponent()->SetCollisionProfileName(PortalPawn, true);
+	}*/
 }
 
 void AGEIIProjectPortalBase::SetPortal(bool bSetPortalIsBlue)
