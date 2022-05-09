@@ -66,10 +66,11 @@ void UGEIIProjectPortalComponent::SpawnPortalAlongVector(FVector StartLocation, 
 		if(bHit)
 		{		
 			PortalWall = Cast<AGEIIProjectPortalWall>(Hit.Actor);
-			
+
 			FVector Trace = Hit.TraceStart - Hit.TraceEnd;
+			float NormalizedTrace = Trace.Normalize(0.0001f) * PortalSpawnOffset;
 			
-			FVector PortalOrigin = Hit.Location + (Trace.Normalize(0.0001f) * PortalSpawnOffset);
+			FVector PortalOrigin = Hit.Location + NormalizedTrace;
 			
 			AActor* NewPortal = PortalWall->TryAddPortal(PortalOrigin, bIsBluePortal);
 
@@ -79,18 +80,20 @@ void UGEIIProjectPortalComponent::SpawnPortalAlongVector(FVector StartLocation, 
 				
 				if(CreatedPortal->GetIsBluePortal())
 				{			
-					SwapPortals(BluePortal, CreatedPortal);		
+					SwapPortals(BluePortal, CreatedPortal);	
+					if(RedPortal != nullptr)
+					{
+						RedPortal->LinkPortals(BluePortal);	
+					}
+					BluePortal->LinkPortals(RedPortal);		
 				}
 				else if(!CreatedPortal->GetIsBluePortal())
 				{
 					SwapPortals(RedPortal, CreatedPortal);
-				}
-				if(BluePortal != nullptr)
-				{
-					BluePortal->LinkPortals(RedPortal);	
-				}
-				if(RedPortal != nullptr)
-				{
+					if(BluePortal != nullptr)
+					{
+						BluePortal->LinkPortals(RedPortal);	
+					}
 					RedPortal->LinkPortals(BluePortal);	
 				}
 			}
