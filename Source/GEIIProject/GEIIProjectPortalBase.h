@@ -3,10 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GEIIProjectPortalWall.h"
 #include "Components/BoxComponent.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Engine/TriggerBox.h"
 #include "GameFramework/Actor.h"
+#include "Kismet/GameplayStatics.h"
 #include "GEIIProjectPortalBase.generated.h"
 
 UCLASS()
@@ -29,23 +31,81 @@ class GEIIPROJECT_API AGEIIProjectPortalBase : public AActor
 	/** Portal's Rim */
 	UPROPERTY(VisibleDefaultsOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* PortalRim;
-	
-	/** Portal's number (1 or 2) */
-	UPROPERTY(EditDefaultsOnly, category = "Portal", meta = (AllowPrivateAccess = "true"))
-	int PortalNumber = FMath::Clamp(PortalNumber, 1,2);
 
 	/** Scene Capture Component so the portals can show what they're seeing */
 	UPROPERTY(VisibleDefaultsOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	USceneCaptureComponent2D* SceneCaptureComponent2D;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	USceneComponent* SceneComponentForCameraManager;
 	
 public:	
 	// Sets default values for this actor's properties
 	AGEIIProjectPortalBase();
 
+	virtual void OnConstruction(const FTransform& Transform) override;
+
+	UFUNCTION(BlueprintCallable, Category = "Portal")
+	void SetPortal(bool bSetPortalIsBlue);
+
+	UFUNCTION(BlueprintCallable, Category = "Portal")
+	bool GetIsBluePortal();
+
+	UFUNCTION(BlueprintCallable, Category = "Portal")
+	void LinkPortals(AGEIIProjectPortalBase* Portal);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	/** Rim Material of the Blue Portal */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	UMaterialInterface* DefaultPortalMaterial;
+
+	/** Rim Material of the Blue Portal */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	UMaterialInterface* BluePortalMaterial;
+	
+	/** Rim Material of the Red Portal */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	UMaterialInterface* RedPortalMaterial;
+
+	/** Rim Material of the Blue Portal */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	UMaterialInterface* BluePortalRimMaterial;
+	
+	/** Rim Material of the Red Portal */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	UMaterialInterface* RedPortalRimMaterial;
+
+	/** Rim Material of the Blue Portal */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	UTextureRenderTarget2D* BluePortalRenderTarget2D;
+	
+	/** Rim Material of the Red Portal */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	UTextureRenderTarget2D* RedPortalRenderTarget2D;
+
+	/** True if it's the Blue portal, False if it's the Red Portal */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "True", ExposeOnSpawn))
+	bool bIsBluePortal;
+
+	/**  */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class AGEIIProjectPortalWall> PortalWallReference;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	AGEIIProjectPortalBase* LinkedPortal;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	APlayerCameraManager* PlayerCameraManager;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	UGameViewportClient* Viewport;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	FIntPoint ViewSize;
+	
 	/** Will rotate the Texture Render Target 2D to the player location so
 	 * it's not just showing a static image*/
 	//void RotatePortalView();

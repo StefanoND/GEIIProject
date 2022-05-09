@@ -3,7 +3,6 @@
 
 #include "GEIIProjectPortalComponent.h"
 
-#include "DrawDebugHelpers.h"
 #include "GEIIProjectPortalWall.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/EngineTypes.h"
@@ -33,7 +32,6 @@ void UGEIIProjectPortalComponent::BeginPlay()
 	// ...
 	
 }
-
 
 // Called every frame
 void UGEIIProjectPortalComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -65,8 +63,6 @@ void UGEIIProjectPortalComponent::SpawnPortalAlongVector(FVector StartLocation, 
 		// Returns if LineTrace has hit our ObjectTypeQuery8 or not
 		bool bHit = GetWorld()->LineTraceSingleByObjectType(Hit, StartLocation, EndLocation, ObjectsToTraceAsByte, TraceParams);
 		
-		DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Orange, false, 2.0f);
-		
 		if(bHit)
 		{		
 			PortalWall = Cast<AGEIIProjectPortalWall>(Hit.Actor);
@@ -75,9 +71,48 @@ void UGEIIProjectPortalComponent::SpawnPortalAlongVector(FVector StartLocation, 
 
 			FVector PortalOrigin = Hit.Location + (Trace.Normalize(0.0001f) * PortalSpawnOffset);
 			
-			PortalWall->TryAddPortal(PortalOrigin, bIsBluePortal);
-			
-			DrawDebugBox(GetWorld(), Hit.ImpactPoint, FVector(5.0f, 5.0f, 5.0f), FColor::Emerald, false, 2.0f);
+			//AActor* NewPortal = PortalWall->TryAddPortal(PortalOrigin, bIsBluePortal);
+
+			AActor* NewPortal = PortalWall->TryAddPortal(PortalOrigin, bIsBluePortal);
+
+			if(NewPortal != nullptr)
+			{
+				AGEIIProjectPortalBase* CreatedPortal = Cast<AGEIIProjectPortalBase>(NewPortal);
+				
+				if(CreatedPortal->GetIsBluePortal())
+				{			
+					SwapPortals(BluePortal, CreatedPortal);		
+				}
+				else if(!CreatedPortal->GetIsBluePortal())
+				{
+					SwapPortals(RedPortal, CreatedPortal);
+				}
+				if(BluePortal != nullptr)
+				{
+					BluePortal->LinkPortals(RedPortal);	
+				}
+				if(RedPortal != nullptr)
+				{
+					RedPortal->LinkPortals(BluePortal);	
+				}
+			}
 		}
+	}
+}
+
+void UGEIIProjectPortalComponent::SwapPortals(AGEIIProjectPortalBase* OldPortal, AGEIIProjectPortalBase* NewPortal)
+{
+	if(OldPortal != nullptr)
+	{
+		OldPortal->Destroy();
+	}
+	
+	if(NewPortal->GetIsBluePortal())
+	{
+		BluePortal = NewPortal;
+	}
+	else if(!NewPortal->GetIsBluePortal())
+	{
+		RedPortal = NewPortal;
 	}
 }

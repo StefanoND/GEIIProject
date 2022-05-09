@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GEIIProjectPortalBase.h"
 #include "GameFramework/Actor.h"
 #include "GEIIProjectPortalWall.generated.h"
 
@@ -24,7 +25,10 @@ public:
 	AGEIIProjectPortalWall();
 
 	UFUNCTION(BlueprintCallable, Category = "Portal")
-	void TryAddPortal(FVector PortalOrigin, bool bIsBluePortal);
+	AActor* TryAddPortal(FVector PortalOrigin, bool bIsBluePortal);
+	
+	UFUNCTION(BlueprintCallable, Category = "Portal")
+	void DestroyPortal(AActor* Actor);
 
 protected:
 	// Called when the game starts or when spawned
@@ -40,9 +44,14 @@ protected:
 	UFUNCTION(Category = "Portal")
 	float PortalRadius(float Radius);
 
+	UFUNCTION(BlueprintCallable, Category = "Portal")
+	bool HasRoomForNewPortal(float NewPortalY, float NewPortalZ);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	virtual void OnConstruction(const FTransform& Transform) override;
 
 protected:
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
@@ -52,8 +61,14 @@ protected:
 	float WallHeight = 100.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "True"))
-	float PortalRadiusY = 249.0f;
+	float PortalRadiusY = 180.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "True"))
-	float PortalRadiusZ = 180.0f;
+	float PortalRadiusZ = 249.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "True"))
+	TSubclassOf<class AGEIIProjectPortalBase> PortalBaseReference;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	TArray<AActor*> PortalsOnWall;
 };

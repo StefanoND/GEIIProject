@@ -24,6 +24,10 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+	/** Will spawn new portals if none are spawned, and swap old portals for the new ones */
+	UFUNCTION(BlueprintCallable, Category = "Portal")
+	void SwapPortals(AGEIIProjectPortalBase* OldPortal, AGEIIProjectPortalBase* NewPortal);
+	
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -44,6 +48,12 @@ protected:
 	/** Reference to the Portal Wall */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	AGEIIProjectPortalWall* PortalWall;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	AGEIIProjectPortalBase* BluePortal;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	AGEIIProjectPortalBase* RedPortal;
 
 private:
 	/** Reference to the Player Controller */

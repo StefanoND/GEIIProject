@@ -3,7 +3,7 @@
 
 #include "GEIIProjectPortalWall.h"
 
-#include "DrawDebugHelpers.h"
+#include "GEIIProjectFunctionLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
@@ -16,10 +16,7 @@ AGEIIProjectPortalWall::AGEIIProjectPortalWall()
 	RootComponent = SceneComponent;
 	
 	Plane = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Plane"));
-	//Plane->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	Plane->SetupAttachment(RootComponent);
-	//Plane->SetRelativeRotation(FRotator(0.0f, -90.0f, 90.0f));
-	//Plane->SetRelativeScale3D(FVector(2.0f, 3.0f, 1.0f));
 }
 
 // Called when the game starts or when spawned
@@ -36,7 +33,14 @@ void AGEIIProjectPortalWall::Tick(float DeltaTime)
 
 }
 
-void AGEIIProjectPortalWall::TryAddPortal(FVector PortalOrigin, bool bIsBluePortal)
+void AGEIIProjectPortalWall::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+
+	Plane->SetWorldScale3D(FVector(1.0f, WallWidth / 100, WallHeight / 100));
+}
+
+AActor* AGEIIProjectPortalWall::TryAddPortal(FVector PortalOrigin, bool bIsBluePortal)
 {
 	//FVector ActorLocation = GetTransform().GetLocation();
 	//FVector RelativePortalOrigin = GetActorTransform().InverseTransformPosition(RelativePortalOrigin);
@@ -44,10 +48,35 @@ void AGEIIProjectPortalWall::TryAddPortal(FVector PortalOrigin, bool bIsBluePort
 	float ConstrainedY = ConstrainPortalToWallY(RelativePortalOrigin.Y);
 	float ConstrainedZ = ConstrainPortalToWallZ(RelativePortalOrigin.Z);
 	RelativePortalOrigin = FVector(RelativePortalOrigin.X, ConstrainedY, ConstrainedZ);
-	
-	DrawDebugSphere(GetWorld(), UKismetMathLibrary::TransformLocation(GetActorTransform(), RelativePortalOrigin), 20.0f, 12, FColor::White, false, 3.0f, 2.0f);
-	
-	// Todo Check Collision with other portals
+
+	UWorld* const World = GetWorld();
+		
+	if (World != nullptr)
+	{
+		AGEIIProjectPortalBase* PortalBlueprintReference;
+		
+		//Set Spawn Collision Handling Override
+		FActorSpawnParameters ActorSpawnParams;
+		ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		
+		FTransform PortalTransform;
+		PortalTransform.SetLocation(UKismetMathLibrary::TransformLocation(GetActorTransform(), RelativePortalOrigin));
+		FRotator PortalRotation = GetActorRotation();
+		PortalTransform.SetRotation(PortalRotation.Quaternion());
+
+		if(HasRoomForNewPortal(RelativePortalOrigin.Y, RelativePortalOrigin.Z))
+		{
+			PortalBlueprintReference = World->SpawnActorDeferred<AGEIIProjectPortalBase>(PortalBaseReference, PortalTransform);
+			PortalBlueprintReference->SetPortal(bIsBluePortal);
+			PortalBlueprintReference->FinishSpawning(PortalTransform);
+			PortalsOnWall.Add(PortalBlueprintReference);
+			
+			PortalBlueprintReference->OnDestroyed.AddDynamic(this, &AGEIIProjectPortalWall::DestroyPortal);
+			
+			return PortalBlueprintReference;
+		}
+	}
+	return nullptr;
 }
 
 float AGEIIProjectPortalWall::ConstrainPortalToWallY(float PortalY)
@@ -79,4 +108,29 @@ float AGEIIProjectPortalWall::ClampPointToWall(float Point, float WallSize, floa
 float AGEIIProjectPortalWall::PortalRadius(float Radius)
 {
 	return Radius / 2;
+}
+
+void AGEIIProjectPortalWall::DestroyPortal(AActor* Actor)
+{
+	PortalsOnWall.Remove(Actor);
+}
+
+bool AGEIIProjectPortalWall::HasRoomForNewPortal(float NewPortalY, float NewPortalZ)
+{
+	for (AActor* PortalOnWall : PortalsOnWall)
+	{
+		//FVector RelativePortalOrigin = GetActorTransform().InverseTransformPosition(RelativePortalOrigin);
+		//FVector PortalLocation = UKismetMathLibrary::InverseTransformLocation(GetActorTransform(), PortalOnWall->GetActorLocation());
+		FVector PortalLocation = GetActorTransform().InverseTransformPosition(PortalOnWall->GetActorLocation());
+		FVector2D PortalLocation2D = FVector2D(PortalLocation.Y, PortalLocation.Z);
+		FVector2D PortalRadius2D = FVector2D(PortalRadius(PortalRadiusY), PortalRadius(PortalRadiusZ));
+		FVector2D NewPortalOrigin = FVector2D(NewPortalY, NewPortalZ);
+		
+		if(UGEIIProjectFunctionLibrary::RectangleToRectangleCollision(PortalLocation2D,
+			PortalRadius2D, NewPortalOrigin, PortalRadius2D))
+		{
+			return false;
+		}
+	}
+	return true;
 }
