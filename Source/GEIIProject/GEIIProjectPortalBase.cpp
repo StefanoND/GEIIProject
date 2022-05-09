@@ -178,9 +178,8 @@ void AGEIIProjectPortalBase::LinkPortals(AGEIIProjectPortalBase* Portal)
 		{
 			if(bIsBluePortal)
 			{
-				LinkedPortal->PortalPlane->SetMaterial(0, BluePortalMaterial);	
+				LinkedPortal->PortalPlane->SetMaterial(0, BluePortalMaterial);
 			}
-
 			if(!bIsBluePortal)
 			{
 				LinkedPortal->PortalPlane->SetMaterial(0, RedPortalMaterial);
@@ -237,15 +236,13 @@ void AGEIIProjectPortalBase::TeleportPlayer(AGEIIProjectCharacter* PlayerCharact
 	
 	PlayerCharacter->SetActorLocation(NewPlayerLocation, false, nullptr, ETeleportType::ResetPhysics);
 
-	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	AController* PlayerController = PlayerCharacter->GetController();
 
-	FRotator PlayerRotator = FRotator(0.0f, NewPlayerRotation.Y, NewPlayerRotation.Z);
-
-	//PlayerCharacter->SetActorRelativeRotation(PlayerRotator);
+	FRotator PlayerRotator = UKismetMathLibrary::MakeRotator(0.0f, NewPlayerRotation.Y, NewPlayerRotation.Z);
 	
 	PlayerController->SetControlRotation(PlayerRotator);
 
-	FTransform NewPlayerTransform = FTransform(PlayerController->GetControlRotation(), PlayerCharacter->GetActorLocation());
+	FTransform NewPlayerTransform = UKismetMathLibrary::MakeTransform(PlayerCharacter->GetActorLocation(), PlayerController->GetControlRotation(), FVector::OneVector);
 
 	FVector NewRelativePlayerVelocity = UKismetMathLibrary::TransformDirection(NewPlayerTransform, RelativePlayerVelocity);
 	

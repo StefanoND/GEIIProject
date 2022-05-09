@@ -68,8 +68,16 @@ public:
 	FVector GunOffset;
 
 	/** Projectile class to spawn */
-	UPROPERTY(EditDefaultsOnly, Category=Projectile)
+	UPROPERTY(VisibleAnywhere, Category=Projectile)
 	TSubclassOf<class AGEIIProjectProjectile> ProjectileClass;
+
+	/** Projectile class to spawn */
+	UPROPERTY(EditDefaultsOnly, Category=Projectile)
+	TSubclassOf<class AGEIIProjectProjectile> BlueProjectileClass;
+
+	/** Projectile class to spawn */
+	UPROPERTY(EditDefaultsOnly, Category=Projectile)
+	TSubclassOf<class AGEIIProjectProjectile> RedProjectileClass;
 
 	/** Sound to play each time we fire */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
@@ -86,7 +94,7 @@ public:
 protected:
 	
 	/** Fires a projectile. */
-	void OnFire();
+	void OnFire(bool bIsBlueProjectile);
 
 	/** Calls OnFire() method as a left-click */
 	void OnLeftClick();

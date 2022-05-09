@@ -92,14 +92,15 @@ float AGEIIProjectPortalWall::ConstrainPortalToWallZ(float PortalZ)
 }
 	
 float AGEIIProjectPortalWall::ClampPointToWall(float Point, float WallSize, float PortalRadius)
-{
+{	
 	float Offset = FMath::Clamp(WallSize / 2 - PortalRadius - FMath::Abs(Point), -9223372036854775808.0f, 0.0f);
-	
-	if(Point > 0)
-	{
-		Offset *= -1;
-	}
 
+	if(Point >= 0.0f)
+	{
+		Offset = -1.0f * Offset;
+		return  Point - Offset;
+	}
+	
 	return Point - Offset;
 }
 

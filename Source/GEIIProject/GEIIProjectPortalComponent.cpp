@@ -80,12 +80,12 @@ void UGEIIProjectPortalComponent::SpawnPortalAlongVector(FVector StartLocation, 
 				
 				if(CreatedPortal->GetIsBluePortal())
 				{			
-					SwapPortals(BluePortal, CreatedPortal);	
+					SwapPortals(BluePortal, CreatedPortal);
 					if(RedPortal != nullptr)
 					{
 						RedPortal->LinkPortals(BluePortal);	
 					}
-					BluePortal->LinkPortals(RedPortal);		
+					BluePortal->LinkPortals(RedPortal);
 				}
 				else if(!CreatedPortal->GetIsBluePortal())
 				{

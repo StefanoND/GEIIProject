@@ -114,9 +114,18 @@ void AGEIIProjectCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AGEIIProjectCharacter::LookUpAtRate);
 }
 
-void AGEIIProjectCharacter::OnFire()
+void AGEIIProjectCharacter::OnFire(bool bIsBlueProjectile)
 {
 	//PortalComponent->TraceForward();
+
+	if(bIsBlueProjectile)
+	{
+		ProjectileClass = BlueProjectileClass;
+	}
+	else if(!bIsBlueProjectile)
+	{
+		ProjectileClass = RedProjectileClass;
+	}
 	
 	// try and fire a projectile
 	if (ProjectileClass != nullptr)
@@ -157,7 +166,7 @@ void AGEIIProjectCharacter::OnFire()
 
 void AGEIIProjectCharacter::OnLeftClick()
 {
-	OnFire();
+	OnFire(true);
 	FVector Location = FirstPersonCameraComponent->GetComponentLocation();
 	FVector ForwardVector = FirstPersonCameraComponent->GetForwardVector();
 	PortalComponent->SpawnPortalAlongVector(Location, ForwardVector, true);
@@ -165,7 +174,9 @@ void AGEIIProjectCharacter::OnLeftClick()
 
 void AGEIIProjectCharacter::OnRightClick()
 {
-	OnFire();
+	OnFire(false);
+	FVector Location = FirstPersonCameraComponent->GetComponentLocation();
+	FVector ForwardVector = FirstPersonCameraComponent->GetForwardVector();
 	PortalComponent->SpawnPortalAlongVector(FirstPersonCameraComponent->GetComponentLocation(), FirstPersonCameraComponent->GetForwardVector(), false);
 }
 
