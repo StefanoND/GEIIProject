@@ -22,16 +22,4 @@ public:
 	/** Changes TextureRenderTarget Transforms so it's more realistic when the player's moving around */
 	UFUNCTION(BlueprintCallable, Category = "Portal")
 	static void ResizeRenderTarget(UTextureRenderTarget2D* RenderTarget, float SizeX, float SizeY);
-
-	UFUNCTION(BlueprintCallable, Category = "Portal")
-	FVector ConvertLocation(FVector const& Location, AActor* Portal, AActor* Target);
-	
-	UFUNCTION(BlueprintCallable, Category = "Portal")
-	FRotator ConvertRotation(FRotator const& Rotation, AActor* Portal, AActor* Target);
-
-	UFUNCTION(BlueprintCallable, Category = "Portal")
-	bool CheckIsInFront(FVector const& Point, FVector& PortalLocation, FVector const& PortalNormal);
-	
-	/*UFUNCTION(BlueprintCallable, Category = "Portal")
-	bool CheckIsCrossing(FVector const& Point, FVector& PortalLocation, FVector const& PortalNormal, bool& out_LastInFront, FVector& out_LastPosition);*/
 };

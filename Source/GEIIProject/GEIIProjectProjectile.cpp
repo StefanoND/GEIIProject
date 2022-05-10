@@ -1,8 +1,11 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "GEIIProjectProjectile.h"
+
+#include "GEIIProjectPortalWall.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 AGEIIProjectProjectile::AGEIIProjectProjectile() 
 {
@@ -22,13 +25,13 @@ AGEIIProjectProjectile::AGEIIProjectProjectile()
 	// Use a ProjectileMovementComponent to govern this projectile's movement
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileComp"));
 	ProjectileMovement->UpdatedComponent = CollisionComp;
-	ProjectileMovement->InitialSpeed = 3000.f;
-	ProjectileMovement->MaxSpeed = 3000.f;
+	ProjectileMovement->InitialSpeed = 5000.f;
+	ProjectileMovement->MaxSpeed = 5000.f;
 	ProjectileMovement->bRotationFollowsVelocity = true;
 	ProjectileMovement->bShouldBounce = true;
 
 	// Die after 3 seconds by default
-	InitialLifeSpan = 3.0f;
+	InitialLifeSpan = 2.0f;
 }
 
 void AGEIIProjectProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
@@ -39,10 +42,7 @@ void AGEIIProjectProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherAc
 		if(!OtherComp->ComponentHasTag(TEXT("PortalWall")) && OtherComp->IsSimulatingPhysics() == true)
 		{
 			OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
-		}
-		if(OtherComp->IsSimulatingPhysics() == true)
-		{
-			Destroy();
-		}
+		}		
+		Destroy();
 	}
 }

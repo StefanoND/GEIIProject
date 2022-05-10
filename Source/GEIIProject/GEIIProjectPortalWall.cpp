@@ -2,7 +2,6 @@
 
 
 #include "GEIIProjectPortalWall.h"
-
 #include "GEIIProjectFunctionLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -35,12 +34,10 @@ void AGEIIProjectPortalWall::OnConstruction(const FTransform& Transform)
 
 AActor* AGEIIProjectPortalWall::TryAddPortal(FVector PortalOrigin, bool bIsBluePortal)
 {
-	//FVector ActorLocation = GetTransform().GetLocation();
-	//FVector RelativePortalOrigin = GetActorTransform().InverseTransformPosition(RelativePortalOrigin);
 	FVector RelativePortalOrigin = UKismetMathLibrary::InverseTransformLocation(GetActorTransform(), PortalOrigin);
-	float ConstrainedY = ConstrainPortalToWallY(RelativePortalOrigin.Y);
-	float ConstrainedZ = ConstrainPortalToWallZ(RelativePortalOrigin.Z);
-	RelativePortalOrigin = FVector(RelativePortalOrigin.X, ConstrainedY, ConstrainedZ);
+
+	FVector2D Constrained = ConstrainPortalToWall(RelativePortalOrigin.Y, RelativePortalOrigin.Z);
+	RelativePortalOrigin = FVector(RelativePortalOrigin.X, Constrained.X, Constrained.Y);
 
 	UWorld* const World = GetWorld();
 		
@@ -70,23 +67,17 @@ AActor* AGEIIProjectPortalWall::TryAddPortal(FVector PortalOrigin, bool bIsBlueP
 	return nullptr;
 }
 
-float AGEIIProjectPortalWall::ConstrainPortalToWallY(float PortalY)
+FVector2D AGEIIProjectPortalWall::ConstrainPortalToWall(float PortalY, float PortalZ)
 {
-	float ClampedY = ClampPointToWall(PortalY, WallWidth, PortalRadius(PortalRadiusY));
-
-	return ClampedY;
-}
-
-float AGEIIProjectPortalWall::ConstrainPortalToWallZ(float PortalZ)
-{
-	float ClampedZ = ClampPointToWall(PortalZ, WallHeight, PortalRadius(PortalRadiusZ));
-
-	return ClampedZ;
+	float ConstrainedY = ClampPointToWall(PortalY, WallWidth, PortalRadius(PortalRadiusY));
+	float ConstrainedZ = ClampPointToWall(PortalZ, WallHeight, PortalRadius(PortalRadiusZ));
+	
+	return FVector2D(ConstrainedY, ConstrainedZ);
 }
 	
 float AGEIIProjectPortalWall::ClampPointToWall(float Point, float WallSize, float PortalRadius)
 {	
-	float Offset = FMath::Clamp(WallSize / 2 - PortalRadius - FMath::Abs(Point), -9223372036854775808.0f, 0.0f);
+	float Offset = FMath::Clamp(((WallSize / 2) - PortalRadius) - FMath::Abs(Point), -100000001504746621987668885504.0f, 0.0f);
 
 	if(Point >= 0.0f)
 	{
@@ -111,9 +102,7 @@ bool AGEIIProjectPortalWall::HasRoomForNewPortal(float NewPortalY, float NewPort
 {
 	for (AActor* PortalOnWall : PortalsOnWall)
 	{
-		//FVector RelativePortalOrigin = GetActorTransform().InverseTransformPosition(RelativePortalOrigin);
-		//FVector PortalLocation = UKismetMathLibrary::InverseTransformLocation(GetActorTransform(), PortalOnWall->GetActorLocation());
-		FVector PortalLocation = GetActorTransform().InverseTransformPosition(PortalOnWall->GetActorLocation());
+		FVector PortalLocation = UKismetMathLibrary::InverseTransformLocation(GetActorTransform(), PortalOnWall->GetActorLocation());
 		FVector2D PortalLocation2D = FVector2D(PortalLocation.Y, PortalLocation.Z);
 		FVector2D PortalRadius2D = FVector2D(PortalRadius(PortalRadiusY), PortalRadius(PortalRadiusZ));
 		FVector2D NewPortalOrigin = FVector2D(NewPortalY, NewPortalZ);
