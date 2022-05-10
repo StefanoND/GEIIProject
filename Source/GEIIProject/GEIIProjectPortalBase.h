@@ -44,14 +44,19 @@ public:
 	// Sets default values for this actor's properties
 	AGEIIProjectPortalBase();
 
+	/** Construction Script */
 	virtual void OnConstruction(const FTransform& Transform) override;
 
+	/** Set if the portal is Blue or Red */
 	UFUNCTION(BlueprintCallable, Category = "Portal")
 	void SetPortal(bool bSetPortalIsBlue);
 
+	/** Get if the portal is Blue or Red */
 	UFUNCTION(BlueprintCallable, Category = "Portal")
 	bool GetIsBluePortal();
 
+	/** Link newly spawned portal to the other of oposite color
+	 * deletes old of the same color */
 	UFUNCTION(BlueprintCallable, Category = "Portal")
 	void LinkPortals(AGEIIProjectPortalBase* Portal);
 
@@ -59,31 +64,31 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	/** Rim Material of the Blue Portal */
+	/** Default Material of the Portals */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	UMaterialInterface* DefaultPortalMaterial;
 
-	/** Rim Material of the Blue Portal */
+	/** Material of the Blue Portal */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	UMaterialInterface* BluePortalMaterial;
 	
-	/** Rim Material of the Red Portal */
+	/** Material of the Red Portal */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	UMaterialInterface* RedPortalMaterial;
 
-	/** Rim Material of the Blue Portal */
+	/** Material of the Blue Portal Border */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	UMaterialInterface* BluePortalRimMaterial;
 	
-	/** Rim Material of the Red Portal */
+	/** Material of the Red Portal Border */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	UMaterialInterface* RedPortalRimMaterial;
 
-	/** Rim Material of the Blue Portal */
+	/** TextureRenderTarget of the Blue Portal */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	UTextureRenderTarget2D* BluePortalRenderTarget2D;
 	
-	/** Rim Material of the Red Portal */
+	/** TextureRenderTarget of the Red Portal */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	UTextureRenderTarget2D* RedPortalRenderTarget2D;
 
@@ -91,23 +96,31 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "True", ExposeOnSpawn))
 	bool bIsBluePortal;
 
-	/**  */
+	/** Portal Wall Blueprint Reference */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class AGEIIProjectPortalWall> PortalWallReference;
 
+	/** Reference to the newly linked Portal */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	AGEIIProjectPortalBase* LinkedPortal;
 
+	/** Reference to the player's camera manager for properly showing
+	 * TextureRenderTarget2D contents */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	APlayerCameraManager* PlayerCameraManager;
 
+	/** Reference to the game's viewport for properly showing
+	 * TextureRenderTarget2D contents */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	UGameViewportClient* Viewport;
-	
+
+	/** Size of the ViewPort */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	FIntPoint ViewSize;
-	
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+
+	/** Array that contains information if the player is currently inside a portal
+	 *  to avoid spam teleport */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	TArray<AActor*> PlayersInPortal;
 
 public:	
@@ -123,9 +136,11 @@ public:
 	void OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 protected:
+	/** Method that will check if the player can teleport */
 	UFUNCTION(BlueprintCallable, Category = "Portal")
 	void CheckIfPlayerShouldTeleport(AGEIIProjectCharacter* PlayerCharacter);
 
+	/** Method that will teleport the player */
 	UFUNCTION(BlueprintCallable, Category = "Portal")
 	void TeleportPlayer(AGEIIProjectCharacter* PlayerCharacter);
 };

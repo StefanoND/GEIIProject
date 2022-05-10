@@ -132,12 +132,15 @@ void AGEIIProjectPortalBase::OnOverlapBegin(UPrimitiveComponent* OverlappedComp,
 
 		if(PlayerCharacter != nullptr)
 		{
-			int PlayerIndex = PlayersInPortal.AddUnique(PlayerCharacter);
-			
-			if(PlayerIndex != -1)
+			if(OtherComp == PlayerCharacter->GetCapsuleComponent())
 			{
-				const FName PortalPawn = "PortalPawn";
-				PlayerCharacter->GetCapsuleComponent()->SetCollisionProfileName(PortalPawn);
+				int PlayerIndex = PlayersInPortal.AddUnique(PlayerCharacter);
+			
+				if(PlayerIndex != -1)
+				{
+					const FName PortalPawn = "PortalPawn";
+					PlayerCharacter->GetCapsuleComponent()->SetCollisionProfileName(PortalPawn, true);
+				}
 			}
 		}	
 	}
@@ -152,9 +155,12 @@ void AGEIIProjectPortalBase::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, A
 	
 	if(PlayerCharacter != nullptr)
 	{
-		const FName PortalPawn = "Pawn";
-		PlayersInPortal.Remove(PlayerCharacter);
-		PlayerCharacter->GetCapsuleComponent()->SetCollisionProfileName(PortalPawn);
+		if(OtherComp == PlayerCharacter->GetCapsuleComponent())
+		{
+			const FName Pawn = "Pawn";
+			PlayersInPortal.Remove(PlayerCharacter);
+			PlayerCharacter->GetCapsuleComponent()->SetCollisionProfileName(Pawn, true);
+		}
 	}
 }
 
@@ -187,6 +193,7 @@ void AGEIIProjectPortalBase::LinkPortals(AGEIIProjectPortalBase* Portal)
 		}
 		else if(LinkedPortal == nullptr)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("Unlinked"));
 			LinkedPortal->PortalPlane->SetMaterial(0, DefaultPortalMaterial);
 		}
 	}
@@ -239,12 +246,12 @@ void AGEIIProjectPortalBase::TeleportPlayer(AGEIIProjectCharacter* PlayerCharact
 	AController* PlayerController = PlayerCharacter->GetController();
 
 	FRotator PlayerRotator = UKismetMathLibrary::MakeRotator(0.0f, NewPlayerRotation.Y, NewPlayerRotation.Z);
-	
-	PlayerController->SetControlRotation(PlayerRotator);
 
 	FTransform NewPlayerTransform = UKismetMathLibrary::MakeTransform(PlayerCharacter->GetActorLocation(), PlayerController->GetControlRotation(), FVector::OneVector);
 
 	FVector NewRelativePlayerVelocity = UKismetMathLibrary::TransformDirection(NewPlayerTransform, RelativePlayerVelocity);
 	
 	PlayerCharacter->GetMovementComponent()->Velocity = NewRelativePlayerVelocity;
+	
+	PlayerController->SetControlRotation(PlayerRotator);
 }

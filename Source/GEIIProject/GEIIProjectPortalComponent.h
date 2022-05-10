@@ -49,9 +49,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	AGEIIProjectPortalWall* PortalWall;
 
+	/** Reference to the Blue Portal */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	AGEIIProjectPortalBase* BluePortal;
 
+	/** Reference to the Red Portal */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	AGEIIProjectPortalBase* RedPortal;
 
