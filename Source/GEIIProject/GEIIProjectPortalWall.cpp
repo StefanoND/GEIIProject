@@ -26,13 +26,6 @@ void AGEIIProjectPortalWall::BeginPlay()
 	
 }
 
-// Called every frame
-void AGEIIProjectPortalWall::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
 void AGEIIProjectPortalWall::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);

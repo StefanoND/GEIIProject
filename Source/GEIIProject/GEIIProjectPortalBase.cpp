@@ -219,8 +219,12 @@ void AGEIIProjectPortalBase::TeleportPlayer(AGEIIProjectCharacter* PlayerCharact
 {
 	UE_LOG(LogTemp, Warning, TEXT("Teleport"));
 
+	AController* PlayerController = PlayerCharacter->GetController();
+
 	FTransform PlayerTransform = PlayerCharacter->GetActorTransform();
 	FVector PlayerVelocity = PlayerCharacter->GetVelocity();
+	
+	FVector ConvertedLocation = UGEIIProjectFunctionLibrary::ConvertLocation(PlayerTransform.GetLocation(), , LinkedPortal);
 	
 	FVector RelativePlayerVelocity = UKismetMathLibrary::InverseTransformDirection(PlayerTransform, PlayerVelocity);
 
@@ -240,16 +244,14 @@ void AGEIIProjectPortalBase::TeleportPlayer(AGEIIProjectCharacter* PlayerCharact
 	FVector NewPlayerLocation = LinkedPortalForwardVector + CameraRelativeLocation;
 	
 	FQuat NewPlayerRotation = ComposedTransform.GetRotation();
-	
-	PlayerCharacter->SetActorLocation(NewPlayerLocation, false, nullptr, ETeleportType::ResetPhysics);
-
-	AController* PlayerController = PlayerCharacter->GetController();
 
 	FRotator PlayerRotator = UKismetMathLibrary::MakeRotator(0.0f, NewPlayerRotation.Y, NewPlayerRotation.Z);
 
 	FTransform NewPlayerTransform = UKismetMathLibrary::MakeTransform(PlayerCharacter->GetActorLocation(), PlayerController->GetControlRotation(), FVector::OneVector);
 
 	FVector NewRelativePlayerVelocity = UKismetMathLibrary::TransformDirection(NewPlayerTransform, RelativePlayerVelocity);
+	
+	PlayerCharacter->SetActorLocation(NewPlayerLocation, false, nullptr, ETeleportType::ResetPhysics);
 	
 	PlayerCharacter->GetMovementComponent()->Velocity = NewRelativePlayerVelocity;
 	

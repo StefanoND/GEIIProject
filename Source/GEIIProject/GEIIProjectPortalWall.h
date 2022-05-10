@@ -56,10 +56,7 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "Portal")
 	bool HasRoomForNewPortal(float NewPortalY, float NewPortalZ);
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
+public:
 	/** Construction script */
 	virtual void OnConstruction(const FTransform& Transform) override;
 
