@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GEIIProjectHUD.h"
 #include "GEIIProjectPortalComponent.h"
 #include "GameFramework/Character.h"
 #include "GEIIProjectCharacter.generated.h"
@@ -52,8 +51,6 @@ class AGEIIProjectCharacter : public ACharacter
 public:
 	AGEIIProjectCharacter();
 
-	virtual void Tick(float DeltaSeconds) override;
-
 protected:
 	virtual void BeginPlay();
 
@@ -73,6 +70,14 @@ public:
 	/** Projectile class to spawn */
 	UPROPERTY(VisibleAnywhere, Category=Projectile)
 	TSubclassOf<class AGEIIProjectProjectile> ProjectileClass;
+
+	/** Projectile class to spawn */
+	UPROPERTY(EditDefaultsOnly, Category=Projectile)
+	TSubclassOf<class AGEIIProjectProjectile> BlueProjectileClass;
+
+	/** Projectile class to spawn */
+	UPROPERTY(EditDefaultsOnly, Category=Projectile)
+	TSubclassOf<class AGEIIProjectProjectile> RedProjectileClass;
 
 	/** Sound to play each time we fire */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
@@ -114,44 +119,11 @@ protected:
 	 * @param Rate	This is a normalized rate, i.e. 1.0 means 100% of desired turn rate
 	 */
 	void LookUpAtRate(float Rate);
-
-	/** Projectile class to spawn */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category= "Portal", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<class AGEIIProjectProjectile> BlueProjectileClass;
-
-	/** Projectile class to spawn */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category= "Portal", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<class AGEIIProjectProjectile> RedProjectileClass;
 	
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 	// End of APawn interface
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HUD", meta = (AllowPrivateAccess = "true"))
-	AGEIIProjectHUD* HUDReference;
-
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
-	//FVector Location;
-	
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
-	//FVector ForwardVector;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
-	FVector EndLocation;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
-	FHitResult Hit;
-	
-	FCollisionQueryParams TraceParams;
-
-	// Helper to convert Enum as Byte so the LineTrace works properly with Object Types
-	// Declaring a Object Type Query to a Enum as Byte and Assigning it to ObjectTypeQuery8 since it's the
-	// Second Custom Object Channel in Project Settings>Collisions
-	TEnumAsByte<EObjectTypeQuery> TraceObjectTypes;
-
-	// Array of Objects to be Queried in LineTrace
-	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectsToTraceAsByte;
 
 public:
 	/** Returns Mesh1P subobject **/

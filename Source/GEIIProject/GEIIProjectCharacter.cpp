@@ -9,6 +9,7 @@
 #include "Components/InputComponent.h"
 #include "GameFramework/InputSettings.h"
 #include "Kismet/GameplayStatics.h"
+#include "MotionControllerComponent.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -82,36 +83,6 @@ void AGEIIProjectCharacter::BeginPlay()
 
 	//Attach gun mesh component to Skeleton, doing it here because the skeleton is not yet created in the constructor
 	FP_Gun->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
-	
-	HUDReference = Cast<AGEIIProjectHUD>(UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetHUD());
-
-	// Helper to convert Enum as Byte so the LineTrace works properly with Object Types
-	// Declaring a Object Type Query to a Enum as Byte and Assigning it to ObjectTypeQuery8 since it's the
-	// Second Custom Object Channel in Project Settings>Collisions
-	TraceObjectTypes = EObjectTypeQuery::ObjectTypeQuery8;
-		
-	// Add our ObjectTypeQuery8 into the array 
-	ObjectsToTraceAsByte.Add(TraceObjectTypes);
-}
-
-void AGEIIProjectCharacter::Tick(float DeltaSeconds)
-{
-	Super::Tick(DeltaSeconds);
-	
-	FVector Location = FirstPersonCameraComponent->GetComponentLocation();
-	FVector ForwardVector = FirstPersonCameraComponent->GetForwardVector();
-	EndLocation = Location + (ForwardVector * PortalComponent->GetMaxSpawnDistance());	
-
-	// Returns if LineTrace has hit our ObjectTypeQuery8 or not
-	bool bHit = GetWorld()->LineTraceSingleByObjectType(Hit, Location, EndLocation, ObjectsToTraceAsByte, TraceParams);
-	if(bHit)
-	{
-		HUDReference->SetOpaqueCrosshair();
-	}
-	else if(!bHit)
-	{
-		HUDReference->SetTransparentCrosshair();
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -169,7 +140,8 @@ void AGEIIProjectCharacter::OnFire(bool bIsBlueProjectile)
 			//Set Spawn Collision Handling Override
 			FActorSpawnParameters ActorSpawnParams;
 			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
-			
+
+			// spawn the projectile at the muzzle
 			World->SpawnActor<AGEIIProjectProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
 		}
 	}
@@ -205,7 +177,7 @@ void AGEIIProjectCharacter::OnRightClick()
 	OnFire(false);
 	FVector Location = FirstPersonCameraComponent->GetComponentLocation();
 	FVector ForwardVector = FirstPersonCameraComponent->GetForwardVector();
-	PortalComponent->SpawnPortalAlongVector(Location, ForwardVector, false);
+	PortalComponent->SpawnPortalAlongVector(FirstPersonCameraComponent->GetComponentLocation(), FirstPersonCameraComponent->GetForwardVector(), false);
 }
 
 void AGEIIProjectCharacter::MoveForward(float Value)

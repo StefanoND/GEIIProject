@@ -21,6 +21,10 @@ class GEIIPROJECT_API AGEIIProjectPortalBase : public AActor
 	UPROPERTY(VisibleDefaultsOnly, Category = "Portal")
 	USceneComponent* SceneComponent;
 	
+	/** Portal's Trigger Box so the player can teleport to the other portal */
+	UPROPERTY(VisibleDefaultsOnly, Category = "Portal", meta = (AllowPrivateAccess = "True"))
+	UBoxComponent* TriggerBox;
+	
 	/** Portal's Mesh */
 	UPROPERTY(VisibleDefaultsOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* PortalPlane;
@@ -62,11 +66,7 @@ protected:
 
 	/** Default Material of the Portals */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Portal", meta = (AllowPrivateAccess = "true"))
-	UMaterialInterface* DefaultBluePortalMaterial;
-
-	/** Default Material of the Portals */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Portal", meta = (AllowPrivateAccess = "true"))
-	UMaterialInterface* DefaultRedPortalMaterial;
+	UMaterialInterface* DefaultPortalMaterial;
 
 	/** Material of the Blue Portal */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Portal", meta = (AllowPrivateAccess = "true"))
@@ -104,10 +104,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	AGEIIProjectPortalBase* LinkedPortal;
 
-	/** Place the actor ahead of the portal so it doesn't spawn on the wall */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
-	float DistanceToPlaceActorAheadOfPortal = 10.0f;
-
 	/** Reference to the player's camera manager for properly showing
 	 * TextureRenderTarget2D contents */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
@@ -124,7 +120,7 @@ protected:
 
 	/** Array that contains information if the player is currently inside a portal
 	 *  to avoid spam teleport */
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	TArray<AActor*> PlayersInPortal;
 
 public:	
