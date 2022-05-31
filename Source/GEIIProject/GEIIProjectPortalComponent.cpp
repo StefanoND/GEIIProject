@@ -6,6 +6,7 @@
 #include "GEIIProjectPortalWall.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/EngineTypes.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values for this component's properties
 UGEIIProjectPortalComponent::UGEIIProjectPortalComponent()
@@ -41,6 +42,11 @@ void UGEIIProjectPortalComponent::TickComponent(float DeltaTime, ELevelTick Tick
 	// ...
 }
 
+float UGEIIProjectPortalComponent::GetMaxSpawnDistance()
+{
+	return MaxSpawnDistance;
+}
+
 void UGEIIProjectPortalComponent::SpawnPortalAlongVector(FVector StartLocation, FVector Direction, bool bIsBluePortal)
 {
 	if(PlayerController != nullptr)
@@ -68,7 +74,9 @@ void UGEIIProjectPortalComponent::SpawnPortalAlongVector(FVector StartLocation, 
 			PortalWall = Cast<AGEIIProjectPortalWall>(Hit.Actor);
 
 			FVector Trace = Hit.TraceStart - Hit.TraceEnd;
-			float NormalizedTrace = Trace.Normalize(0.0001f) * PortalSpawnOffset;
+			
+			//float NormalizedTrace = Trace.Normalize(0.0001f) * PortalSpawnOffset;
+			FVector NormalizedTrace = Trace.GetSafeNormal(0.0001f) * PortalSpawnOffset;
 			
 			FVector PortalOrigin = Hit.Location + NormalizedTrace;
 			

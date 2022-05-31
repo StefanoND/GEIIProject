@@ -10,10 +10,12 @@
 AGEIIProjectHUD::AGEIIProjectHUD()
 {
 	// Set the crosshair texture
-	static ConstructorHelpers::FObjectFinder<UTexture2D> CrosshairTexObj(TEXT("/Game/FirstPerson/Textures/FirstPersonCrosshair"));
-	CrosshairTex = CrosshairTexObj.Object;
+	static ConstructorHelpers::FObjectFinder<UTexture2D> CrosshairTexObj1(TEXT("/Game/FirstPerson/Textures/OpaqueFirstPersonCrosshair"));
+	static ConstructorHelpers::FObjectFinder<UTexture2D> CrosshairTexObj2(TEXT("/Game/FirstPerson/Textures/TransparentFirstPersonCrosshair"));
+	OpaqueCrosshairTex = CrosshairTexObj1.Object;
+	TransparentCrosshairTex = CrosshairTexObj2.Object;
+	CrosshairTex = OpaqueCrosshairTex;
 }
-
 
 void AGEIIProjectHUD::DrawHUD()
 {
@@ -31,4 +33,14 @@ void AGEIIProjectHUD::DrawHUD()
 	FCanvasTileItem TileItem( CrosshairDrawPosition, CrosshairTex->Resource, FLinearColor::White);
 	TileItem.BlendMode = SE_BLEND_Translucent;
 	Canvas->DrawItem( TileItem );
+}
+
+void AGEIIProjectHUD::SetOpaqueCrosshair()
+{
+	CrosshairTex = OpaqueCrosshairTex;
+}
+
+void AGEIIProjectHUD::SetTransparentCrosshair()
+{
+	CrosshairTex = TransparentCrosshairTex;
 }

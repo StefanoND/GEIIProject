@@ -24,7 +24,7 @@ public:
 	// Sets default values for this actor's properties
 	AGEIIProjectPortalWall();
 
-	/** Method that will try to add a portal if possible */
+	/** Try to add a portal if possible */
 	UFUNCTION(BlueprintCallable, Category = "Portal")
 	AActor* TryAddPortal(FVector PortalOrigin, bool bIsBluePortal);
 
@@ -36,19 +36,16 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	/** Method that will stop the portal spawning with it's edges outside walls or
+	/** Stops the portal from spawning with it's edges outside walls or
 	 * on top of another portal*/
 	UFUNCTION(Category = "Portal")
-	float ConstrainPortalToWallY(float PortalY);
-	
-	UFUNCTION(Category = "Portal")
-	float ConstrainPortalToWallZ(float PortalZ);
+	FVector2D ConstrainPortalToWall(float PortalY, float PortalZ);
 
-	/** Method that will be used by ConstrainPortalToWall methods for checking the portal's transform */
+	/** Used by ConstrainPortalToWall method for checking the portal's transform */
 	UFUNCTION(Category = "Portal")
 	float ClampPointToWall(float Point, float WallSize, float PortalRadius);
 
-	/** Method that will return half of the portal's radius */
+	/** Return half of the portal's radius */
 	UFUNCTION(Category = "Portal")
 	float PortalRadius(float Radius);
 
