@@ -108,6 +108,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	float DistanceToPlaceActorAheadOfPortal = 10.0f;
 
+	/** Place the actor ahead of the portal so it doesn't spawn on the wall */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	float ThresholdBehindPortal = 0.5f;
+
 	/** Reference to the player's camera manager for properly showing
 	 * TextureRenderTarget2D contents */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
@@ -126,6 +130,14 @@ protected:
 	 *  to avoid spam teleport */
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	TArray<AActor*> PlayersInPortal;
+
+	/** Checks last actor in front */
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	bool bLastInFront;
+
+	/** Threshold for teleporting player */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	FVector LastPosition;
 
 public:	
 	// Called every frame

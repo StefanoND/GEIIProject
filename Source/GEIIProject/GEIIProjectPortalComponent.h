@@ -26,7 +26,7 @@ protected:
 
 	/** Will spawn new portals if none are spawned, and swap old portals for the new ones */
 	UFUNCTION(BlueprintCallable, Category = "Portal")
-	void SwapPortals(AGEIIProjectPortalBase* OldPortal, AGEIIProjectPortalBase* NewPortal);
+	void SwapPortals(AGEIIProjectPortalBase* OldPortal, AGEIIProjectPortalBase* const& NewPortal);
 	
 public:	
 	// Called every frame

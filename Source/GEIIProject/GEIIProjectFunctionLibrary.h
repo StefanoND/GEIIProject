@@ -22,4 +22,20 @@ public:
 	/** Changes TextureRenderTarget Transforms so it's more realistic when the player's moving around */
 	UFUNCTION(BlueprintCallable, Category = "Portal")
 	static void ResizeRenderTarget(UTextureRenderTarget2D* RenderTarget, float SizeX, float SizeY);
+
+	/** Calculates the Actor is teleport location */
+	UFUNCTION(BlueprintCallable, Category = "Portal")
+	static FVector ConvertLocation(FVector const& CurrentLocation, AActor* OriginPortal, AActor* DestinationPortal);
+
+	/** Calculates the Actor is teleport rotation */
+	UFUNCTION(BlueprintCallable, Category = "Portal")
+	static FRotator ConvertRotation(FRotator const& CurrentRotation, AActor* OriginPortal, AActor* DestinationPortal);
+
+	/** Checks if the Actor is in front of the portal */
+	UFUNCTION(BlueprintCallable, Category = "Portal")
+	static bool CheckIsInFront(FVector const& ActorLocation, FVector const& PortalLocation, FVector const& PortalDirection);
+	
+	UFUNCTION(BlueprintCallable, Category = "Portal")
+	static bool CheckIsCrossing(FVector const& ActorLocation, FVector const& PortalLocation, FVector const& PortalDirection,
+								bool& out_LastInFront, FVector& out_LastPosition);
 };

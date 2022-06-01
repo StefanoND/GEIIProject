@@ -109,9 +109,12 @@ void UGEIIProjectPortalComponent::SpawnPortalAlongVector(FVector StartLocation, 
 	}
 }
 
-void UGEIIProjectPortalComponent::SwapPortals(AGEIIProjectPortalBase* OldPortal, AGEIIProjectPortalBase* NewPortal)
+void UGEIIProjectPortalComponent::SwapPortals(AGEIIProjectPortalBase* OldPortal, AGEIIProjectPortalBase* const& NewPortal)
 {
-	if(OldPortal != nullptr)
+	OldPortal->Destroy();
+	OldPortal = NewPortal;
+	
+	/*if(OldPortal != nullptr)
 	{
 		OldPortal->Destroy();
 	}
@@ -122,5 +125,5 @@ void UGEIIProjectPortalComponent::SwapPortals(AGEIIProjectPortalBase* OldPortal,
 	else if(!NewPortal->GetIsBluePortal())
 	{
 		RedPortal = NewPortal;
-	}
+	}*/
 }

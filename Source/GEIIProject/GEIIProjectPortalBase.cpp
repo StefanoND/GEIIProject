@@ -13,6 +13,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
+class UGEIIProjectFunctionLibrary;
+
 // Sets default values
 AGEIIProjectPortalBase::AGEIIProjectPortalBase()
 {
@@ -195,15 +197,17 @@ void AGEIIProjectPortalBase::LinkPortals(AGEIIProjectPortalBase* Portal)
 void AGEIIProjectPortalBase::CheckIfPlayerShouldTeleport(AGEIIProjectCharacter* PlayerCharacter)
 {
 	FVector PlayerLocation = PlayerCharacter->GetActorLocation();
-	FVector PlayerVelocity = PlayerCharacter->GetVelocity() * UGameplayStatics::GetWorldDeltaSeconds(GetWorld());
+	/*FVector PlayerVelocity = PlayerCharacter->GetVelocity() * UGameplayStatics::GetWorldDeltaSeconds(GetWorld());
 	FVector PlayerFutureLocation = PlayerLocation + PlayerVelocity;
 	FVector FromPortalToPlayerLocation = PlayerFutureLocation - GetActorLocation();
-	FVector Normalized = FromPortalToPlayerLocation.GetSafeNormal(0.0001f);
+	FVector Normalized = FromPortalToPlayerLocation.GetSafeNormal(0.0001f);*/
 
 	// If Player is behind portal and is actively moving forwards
-	if(FVector::DotProduct(Normalized, GetActorForwardVector()) <= 0.0f &&
+	/*if(FVector::DotProduct(Normalized, GetActorForwardVector()) <= ThresholdBehindPortal)*//* &&
 	   FVector::DotProduct(PlayerCharacter->GetLastMovementInputVector().GetSafeNormal(0.0001f),
-	   					   GetActorForwardVector()) < 0.0f)
+	   					   GetActorForwardVector()) < 0.0f)*/
+	if(UGEIIProjectFunctionLibrary::CheckIsCrossing(PlayerLocation, this->GetActorLocation(),
+										 this->GetActorForwardVector(), bLastInFront, LastPosition))
 	{
 		TeleportPlayer(PlayerCharacter);
 	}
@@ -212,6 +216,20 @@ void AGEIIProjectPortalBase::CheckIfPlayerShouldTeleport(AGEIIProjectCharacter* 
 void AGEIIProjectPortalBase::TeleportPlayer(AGEIIProjectCharacter* PlayerCharacter)
 {
 	AController* PlayerController = PlayerCharacter->GetController();
+
+	FVector Location = UGEIIProjectFunctionLibrary::ConvertLocation(PlayerCharacter->GetActorLocation(), this, LinkedPortal);
+	FRotator Rotation = UGEIIProjectFunctionLibrary::ConvertRotation(PlayerController->GetControlRotation(), this, LinkedPortal); 
+	
+	PlayerCharacter->SetActorLocation(Location, false, nullptr, ETeleportType::TeleportPhysics);
+	PlayerController->SetControlRotation(Rotation);
+	
+	FVector RelativePlayerVelocity = UKismetMathLibrary::InverseTransformDirection(PlayerCharacter->GetActorTransform(),
+																			PlayerCharacter->GetVelocity());
+	FTransform ControlPlayerTransform = UKismetMathLibrary::MakeTransform(PlayerCharacter->GetActorLocation(),
+										PlayerController->GetControlRotation(), FVector::OneVector);
+	FVector NewRelativeVelocity = UKismetMathLibrary::TransformDirection(ControlPlayerTransform, RelativePlayerVelocity);
+	PlayerCharacter->GetMovementComponent()->Velocity = NewRelativeVelocity;
+	/*AController* PlayerController = PlayerCharacter->GetController();
 	UCameraComponent* FirstPersonCamera = PlayerCharacter->GetFirstPersonCameraComponent();
 
 	FTransform PlayerTransform = PlayerCharacter->GetActorTransform();
@@ -235,5 +253,5 @@ void AGEIIProjectPortalBase::TeleportPlayer(AGEIIProjectCharacter* PlayerCharact
 	FTransform ControlPlayerTransform = UKismetMathLibrary::MakeTransform(PlayerCharacter->GetActorLocation(), PlayerController->GetControlRotation(), FVector::OneVector);
 	FVector NewRelativeVelocity = UKismetMathLibrary::TransformDirection(ControlPlayerTransform, RelativePlayerVelocity);
 	
-	PlayerCharacter->GetMovementComponent()->Velocity = NewRelativeVelocity;
+	PlayerCharacter->GetMovementComponent()->Velocity = NewRelativeVelocity;*/
 }
