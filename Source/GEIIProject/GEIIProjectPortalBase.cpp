@@ -38,19 +38,25 @@ AGEIIProjectPortalBase::AGEIIProjectPortalBase()
 	SceneCaptureComponent2D->SetupAttachment(RootComponent);
 	SceneCaptureComponent2D->FOVAngle = 90.0f;
 	SceneCaptureComponent2D->bOverride_CustomNearClippingPlane = true;
+	//SceneCaptureComponent2D->bUseCustomProjectionMatrix = true;
+	SceneCaptureComponent2D->bCameraCutThisFrame = false;
 
 	SceneComponentForCameraManager = CreateDefaultSubobject<USceneComponent>(TEXT("BackFacingScene"));
 	SceneComponentForCameraManager->SetupAttachment(RootComponent);
 	SceneComponentForCameraManager->SetRelativeRotation(FRotator(0.0f, 180.0f, 0.0f));
+
+	BoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
+	BoxComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	BoxComponent->SetupAttachment(RootComponent);
 	
 	// Assigning OnBegin and OnEnd overlap events to our methods
-	PortalPlane->OnComponentBeginOverlap.AddDynamic(this, &AGEIIProjectPortalBase::OnOverlapBegin);
-	PortalPlane->OnComponentEndOverlap.AddDynamic(this, &AGEIIProjectPortalBase::OnOverlapEnd);
+	BoxComponent->OnComponentBeginOverlap.AddDynamic(this, &AGEIIProjectPortalBase::OnBoxBeginOverlap);
+	BoxComponent->OnComponentEndOverlap.AddDynamic(this, &AGEIIProjectPortalBase::OnBoxEndOverlap);
 }
 
 void AGEIIProjectPortalBase::OnConstruction(const FTransform& Transform)
 {
-	Super::OnConstruction(Transform);
+	//Super::OnConstruction(Transform);
 	
 	if(bIsBluePortal)
 	{
@@ -72,12 +78,26 @@ void AGEIIProjectPortalBase::OnConstruction(const FTransform& Transform)
 	}
 }
 
+void AGEIIProjectPortalBase::PostEditMove(bool bFinished)
+{
+	OnConstruction(GetTransform());
+}
+
+
 // Called when the game starts or when spawned
 void AGEIIProjectPortalBase::BeginPlay()
 {
 	Super::BeginPlay();
 
 	PlayerCameraManager = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
+	
+	FVector Location = GetActorForwardVector() * 40.0f;
+	RootComponent->SetRelativeLocation(GetActorLocation() - Location);
+	
+	FTimerHandle TimerHandle;
+	//GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AGEIIProjectPortalBase::MoveActor, 1)
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &AGEIIProjectPortalBase::MoveActor, 1, false, DelayTimer);
+	
 }
 
 // Called every frame
@@ -96,8 +116,10 @@ void AGEIIProjectPortalBase::Tick(float DeltaTime)
 		FTransform PlayerCameraTransform = CameraTransformComponent->GetComponentTransform();
 		FTransform SceneComponentTransform = SceneComponentForCameraManager->GetComponentTransform();
 		
-		FTransform RelativeTransform = UKismetMathLibrary::MakeRelativeTransform(PlayerCameraTransform, SceneComponentTransform);
-		FVector RelativeLocation = RelativeTransform.GetLocation();
+		FTransform RelativeTransform = PlayerCameraTransform.GetRelativeTransform(SceneComponentTransform);
+		FVector Subtract = FVector::ZeroVector;
+		Subtract = PlayerCameraManager->GetActorForwardVector() * CameraDistance;
+		FVector RelativeLocation = RelativeTransform.GetLocation() - Subtract;
 		FQuat RelativeRotation = RelativeTransform.GetRotation();
 		
 		LinkedPortal->SceneCaptureComponent2D->SetRelativeLocationAndRotation(RelativeLocation, RelativeRotation);
@@ -106,49 +128,64 @@ void AGEIIProjectPortalBase::Tick(float DeltaTime)
 		
 		LinkedPortal->SceneCaptureComponent2D->CustomNearClippingPlane = MinimumClippingPlane;
 
-		for (AActor* Player : PlayersInPortal)
+		if(bIsOverlapping)
 		{
-			AGEIIProjectCharacter* PlayerCharacter = Cast<AGEIIProjectCharacter>(Player);
-			CheckIfPlayerShouldTeleport(PlayerCharacter);
+			// Commented out since it was giving "Array changed during ranged-for iteration" errors
+			//for (AActor* Player : PlayersInPortal)
+			for (int32 i = 0; i < PlayersInPortal.Num() ; i++)
+			{
+				AActor* Player = PlayersInPortal[i];
+				PlayerCharacterReference = Cast<AGEIIProjectCharacter>(Player);
+				CheckIfPlayerShouldTeleport(PlayerCharacterReference);
+			}
 		}
 	}
 }
 
-void AGEIIProjectPortalBase::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+void AGEIIProjectPortalBase::OnBoxBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{	
+{
 	if(LinkedPortal != nullptr)
 	{
-		AGEIIProjectCharacter* PlayerCharacter = Cast<AGEIIProjectCharacter>(OtherActor);
+		PlayerCharacterReference = Cast<AGEIIProjectCharacter>(OtherActor);
 
-		if(PlayerCharacter != nullptr)
+		if(PlayerCharacterReference != nullptr && !PlayersInPortal.Contains(PlayerCharacterReference))
 		{
-			if(OtherComp == PlayerCharacter->GetCapsuleComponent())
+			if(OtherComp == PlayerCharacterReference->GetCapsuleComponent())
 			{
-				int PlayerIndex = PlayersInPortal.AddUnique(PlayerCharacter);
+				int PlayerIndex = PlayersInPortal.AddUnique(PlayerCharacterReference);	
 			
 				if(PlayerIndex != -1)
 				{
+					bIsOverlapping = true;
 					const FName PortalPawn = "PortalPawn";
-					PlayerCharacter->GetCapsuleComponent()->SetCollisionProfileName(PortalPawn, true);
+					PlayerCharacterReference->GetCapsuleComponent()->SetCollisionProfileName(PortalPawn, true);
 				}
 			}
 		}	
 	}
 }
 
-void AGEIIProjectPortalBase::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+void AGEIIProjectPortalBase::OnBoxEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	AGEIIProjectCharacter* PlayerCharacter = Cast<AGEIIProjectCharacter>(OtherActor);
+	PlayerCharacterReference = Cast<AGEIIProjectCharacter>(OtherActor);
 	
-	if(PlayerCharacter != nullptr)
+	if(PlayerCharacterReference != nullptr)
 	{
-		if(OtherComp == PlayerCharacter->GetCapsuleComponent())
+		if(OtherComp == PlayerCharacterReference->GetCapsuleComponent())
 		{
+			if(PlayersInPortal.Contains(PlayerCharacterReference))
+			{
+				PlayersInPortal.Remove(PlayerCharacterReference);
+			}
+			if(PlayersInPortal.Num() <= 0)
+			{
+				bIsOverlapping = false;
+			}
+			
 			const FName Pawn = "Pawn";
-			PlayersInPortal.Remove(PlayerCharacter);
-			PlayerCharacter->GetCapsuleComponent()->SetCollisionProfileName(Pawn, true);
+			PlayerCharacterReference->GetCapsuleComponent()->SetCollisionProfileName(Pawn, true);
 		}
 	}
 }
@@ -196,18 +233,7 @@ void AGEIIProjectPortalBase::LinkPortals(AGEIIProjectPortalBase* Portal)
 
 void AGEIIProjectPortalBase::CheckIfPlayerShouldTeleport(AGEIIProjectCharacter* PlayerCharacter)
 {
-	FVector PlayerLocation = PlayerCharacter->GetActorLocation();
-	/*FVector PlayerVelocity = PlayerCharacter->GetVelocity() * UGameplayStatics::GetWorldDeltaSeconds(GetWorld());
-	FVector PlayerFutureLocation = PlayerLocation + PlayerVelocity;
-	FVector FromPortalToPlayerLocation = PlayerFutureLocation - GetActorLocation();
-	FVector Normalized = FromPortalToPlayerLocation.GetSafeNormal(0.0001f);*/
-
-	// If Player is behind portal and is actively moving forwards
-	/*if(FVector::DotProduct(Normalized, GetActorForwardVector()) <= ThresholdBehindPortal)*//* &&
-	   FVector::DotProduct(PlayerCharacter->GetLastMovementInputVector().GetSafeNormal(0.0001f),
-	   					   GetActorForwardVector()) < 0.0f)*/
-	if(UGEIIProjectFunctionLibrary::CheckIsCrossing(PlayerLocation, this->GetActorLocation(),
-										 this->GetActorForwardVector(), bLastInFront, LastPosition))
+	if(bIsOverlapping)
 	{
 		TeleportPlayer(PlayerCharacter);
 	}
@@ -215,43 +241,26 @@ void AGEIIProjectPortalBase::CheckIfPlayerShouldTeleport(AGEIIProjectCharacter* 
 
 void AGEIIProjectPortalBase::TeleportPlayer(AGEIIProjectCharacter* PlayerCharacter)
 {
+	if(UGEIIProjectFunctionLibrary::CheckIsCrossing(PlayerCharacter->GetActorLocation(),
+		this->GetActorLocation(), this->GetActorForwardVector(), bLastInFront,
+		LastPosition))
+	{
 	AController* PlayerController = PlayerCharacter->GetController();
-
-	FVector Location = UGEIIProjectFunctionLibrary::ConvertLocation(PlayerCharacter->GetActorLocation(), this, LinkedPortal);
-	FRotator Rotation = UGEIIProjectFunctionLibrary::ConvertRotation(PlayerController->GetControlRotation(), this, LinkedPortal); 
 	
+	FRotator Rotation = UGEIIProjectFunctionLibrary::ConvertRotation(PlayerController->GetControlRotation(), this, LinkedPortal);
+	FVector Location = UGEIIProjectFunctionLibrary::ConvertLocation(LastPosition, this, LinkedPortal);
+		
 	PlayerCharacter->SetActorLocation(Location, false, nullptr, ETeleportType::TeleportPhysics);
-	PlayerController->SetControlRotation(Rotation);
+	PlayerController->SetControlRotation(FRotator(Rotation.Pitch, Rotation.Yaw, 0.0f));
 	
-	FVector RelativePlayerVelocity = UKismetMathLibrary::InverseTransformDirection(PlayerCharacter->GetActorTransform(),
-																			PlayerCharacter->GetVelocity());
-	FTransform ControlPlayerTransform = UKismetMathLibrary::MakeTransform(PlayerCharacter->GetActorLocation(),
-										PlayerController->GetControlRotation(), FVector::OneVector);
-	FVector NewRelativeVelocity = UKismetMathLibrary::TransformDirection(ControlPlayerTransform, RelativePlayerVelocity);
-	PlayerCharacter->GetMovementComponent()->Velocity = NewRelativeVelocity;
-	/*AController* PlayerController = PlayerCharacter->GetController();
-	UCameraComponent* FirstPersonCamera = PlayerCharacter->GetFirstPersonCameraComponent();
+	FVector Velocity = UGEIIProjectFunctionLibrary::ConvertVelocity(PlayerCharacter, Location, Rotation);
 
-	FTransform PlayerTransform = PlayerCharacter->GetActorTransform();
-	FVector PlayerVelocity = PlayerCharacter->GetVelocity();
-	FVector RelativePlayerVelocity = UKismetMathLibrary::InverseTransformDirection(PlayerTransform, PlayerVelocity);
-	
-	FTransform BackFacingSceneTransform = SceneComponentForCameraManager->GetComponentTransform();
-	FTransform RelativeTransform = UKismetMathLibrary::MakeRelativeTransform(FirstPersonCamera->GetComponentTransform(), BackFacingSceneTransform);
-	FTransform MultipliedTransforms = UKismetMathLibrary::ComposeTransforms(RelativeTransform, LinkedPortal->GetActorTransform());
+	PlayerCharacter->GetMovementComponent()->Velocity = Velocity;
+	}
+}
 
-	FVector MultipliedLocation = MultipliedTransforms.GetLocation();
-	FRotator MultipliedRotation = MultipliedTransforms.GetRotation().Rotator();
-	
-	FVector LinkedPortalForwardVector = LinkedPortal->GetActorForwardVector() * DistanceToPlaceActorAheadOfPortal;
-	FVector NewCameraRelativeLocation = MultipliedLocation - FirstPersonCamera->GetRelativeLocation();
-	FVector LinkedLocation = LinkedPortalForwardVector + NewCameraRelativeLocation;
-	
-	PlayerCharacter->SetActorLocation(LinkedLocation, false, nullptr, ETeleportType::TeleportPhysics);
-	PlayerController->SetControlRotation(UKismetMathLibrary::MakeRotator(0.0f, MultipliedRotation.Pitch, MultipliedRotation.Yaw));
-
-	FTransform ControlPlayerTransform = UKismetMathLibrary::MakeTransform(PlayerCharacter->GetActorLocation(), PlayerController->GetControlRotation(), FVector::OneVector);
-	FVector NewRelativeVelocity = UKismetMathLibrary::TransformDirection(ControlPlayerTransform, RelativePlayerVelocity);
-	
-	PlayerCharacter->GetMovementComponent()->Velocity = NewRelativeVelocity;*/
+void AGEIIProjectPortalBase::MoveActor()
+{
+	FVector Location = GetActorForwardVector() * 40.0f;
+	RootComponent->SetRelativeLocation(GetActorLocation() + Location);
 }

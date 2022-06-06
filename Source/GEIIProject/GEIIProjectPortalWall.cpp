@@ -18,18 +18,18 @@ AGEIIProjectPortalWall::AGEIIProjectPortalWall()
 	Plane->SetupAttachment(RootComponent);
 }
 
-// Called when the game starts or when spawned
-void AGEIIProjectPortalWall::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
-
 void AGEIIProjectPortalWall::OnConstruction(const FTransform& Transform)
 {
-	Super::OnConstruction(Transform);
-
+	//Super::OnConstruction(Transform);
+	
 	Plane->SetWorldScale3D(FVector(1.0f, WallWidth / 100, WallHeight / 100));
+}
+
+void AGEIIProjectPortalWall::PostEditMove(bool bFinished)
+{
+	Super::PostEditMove(bFinished);
+	
+	OnConstruction(GetActorTransform());
 }
 
 AActor* AGEIIProjectPortalWall::TryAddPortal(FVector PortalOrigin, bool bIsBluePortal)

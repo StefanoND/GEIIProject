@@ -3,6 +3,7 @@
 
 #include "GEIIProjectFunctionLibrary.h"
 
+#include "GEIIProjectCharacter.h"
 #include "Engine/TextureRenderTarget2D.h"
 
 bool UGEIIProjectFunctionLibrary::RectangleToRectangleCollision(FVector2D Rectangle1Origin, FVector2D Rectangle1Extents,
@@ -79,18 +80,26 @@ FRotator UGEIIProjectFunctionLibrary::ConvertRotation(FRotator const& CurrentRot
 
 	// Rotate in the Z axis
 	FQuat QuatRotation = FQuat::MakeFromEuler(RotationAdjustment) * FQuat(CurrentRotation);
-	// Translates rotation from World Space to Relative (Local) Space
 	FQuat LocalQuat = FQuat::MakeFromEuler(LocalAdjustment) *
 					  OriginPortal->GetActorTransform().GetRotation().Inverse() * QuatRotation;
 
 	// Final rotation
 	FQuat NewWorldQuat = DestinationPortal->GetActorTransform().GetRotation() * LocalQuat;
 
+	//return ReturnRot;
 	return  NewWorldQuat.Rotator();
 }
 
+FVector UGEIIProjectFunctionLibrary::ConvertVelocity(AGEIIProjectCharacter* PlayerCharacter, FVector const& Location, FRotator const& Rotation)
+{
+	FVector RelativeVelocity = PlayerCharacter->GetActorTransform().InverseTransformVectorNoScale(PlayerCharacter->GetVelocity());
+	FTransform ControlTransform = FTransform(Rotation, Location, FVector::OneVector);
+	
+	return FVector(ControlTransform.TransformVector(RelativeVelocity));
+}
+
 bool UGEIIProjectFunctionLibrary::CheckIsInFront(FVector const& ActorLocation, FVector const& PortalLocation,
-                                           FVector const& PortalDirection)
+                                                 FVector const& PortalDirection)
 {
 	// Create imaginary plane at PortalLocation facing normalized PortalDirection
 	// So it only cares the direction it's facing, ignoring lenght.

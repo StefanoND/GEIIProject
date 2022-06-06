@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GEIIProjectCharacter.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "GEIIProjectFunctionLibrary.generated.h"
 
@@ -23,13 +24,16 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Portal")
 	static void ResizeRenderTarget(UTextureRenderTarget2D* RenderTarget, float SizeX, float SizeY);
 
-	/** Calculates the Actor is teleport location */
+	// Calculates the Actor is teleport location
 	UFUNCTION(BlueprintCallable, Category = "Portal")
 	static FVector ConvertLocation(FVector const& CurrentLocation, AActor* OriginPortal, AActor* DestinationPortal);
 
-	/** Calculates the Actor is teleport rotation */
+	// Calculates the Actor is teleport rotation
 	UFUNCTION(BlueprintCallable, Category = "Portal")
 	static FRotator ConvertRotation(FRotator const& CurrentRotation, AActor* OriginPortal, AActor* DestinationPortal);
+	
+	UFUNCTION(BlueprintCallable, Category = "Porta")
+	static FVector ConvertVelocity(AGEIIProjectCharacter* PlayerCharacter, FVector const& Location, FRotator const& Rotation);
 
 	/** Checks if the Actor is in front of the portal */
 	UFUNCTION(BlueprintCallable, Category = "Portal")

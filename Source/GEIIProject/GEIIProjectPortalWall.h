@@ -33,9 +33,6 @@ public:
 	void DestroyPortal(AActor* Actor);
 
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
 	/** Stops the portal from spawning with it's edges outside walls or
 	 * on top of another portal*/
 	UFUNCTION(Category = "Portal")
@@ -56,6 +53,8 @@ protected:
 public:
 	/** Construction script */
 	virtual void OnConstruction(const FTransform& Transform) override;
+
+	virtual void PostEditMove(bool bFinished) override;
 
 protected:
 	/** Size of the wall's Width, must change instanced walls */

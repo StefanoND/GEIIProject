@@ -3,8 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GEIIProjectGameState.h"
 #include "GEIIProjectHUD.h"
-#include "GEIIProjectPortalComponent.h"
+//#include "GEIIProjectPortalComponent.h"
 #include "GameFramework/Character.h"
 #include "GEIIProjectCharacter.generated.h"
 
@@ -46,8 +47,8 @@ class AGEIIProjectCharacter : public ACharacter
 	UCameraComponent* FirstPersonCameraComponent;
 
 	/** Portal Component */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
-	UGEIIProjectPortalComponent* PortalComponent;
+	/*UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	UGEIIProjectPortalComponent* PortalComponent;*/
 
 public:
 	AGEIIProjectCharacter();
@@ -152,6 +153,10 @@ protected:
 
 	// Array of Objects to be Queried in LineTrace
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectsToTraceAsByte;
+
+	AGEIIProjectGameState* GameStateReference;
+	
+	AGEIIProjectPortalManager* PortalManagerReference;
 
 public:
 	/** Returns Mesh1P subobject **/

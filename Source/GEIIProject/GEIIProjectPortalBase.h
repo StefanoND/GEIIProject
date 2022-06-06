@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/BoxComponent.h"
+#include "Components/TimelineComponent.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"
@@ -35,6 +36,11 @@ class GEIIPROJECT_API AGEIIProjectPortalBase : public AActor
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	USceneComponent* SceneComponentForCameraManager;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	UBoxComponent* BoxComponent;
+
+	
 	
 public:	
 	// Sets default values for this actor's properties
@@ -42,6 +48,8 @@ public:
 
 	/** Construction Script */
 	virtual void OnConstruction(const FTransform& Transform) override;
+
+	virtual void PostEditMove(bool bFinished) override;
 
 	/** Set if the portal is Blue or Red */
 	UFUNCTION(BlueprintCallable, Category = "Portal")
@@ -98,7 +106,7 @@ protected:
 
 	/** Portal Wall Blueprint Reference */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<class AGEIIProjectPortalWall> PortalWallReference;
+	TSubclassOf<AGEIIProjectPortalWall> PortalWallReference;
 
 	/** Reference to the newly linked Portal */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
@@ -106,11 +114,7 @@ protected:
 
 	/** Place the actor ahead of the portal so it doesn't spawn on the wall */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
-	float DistanceToPlaceActorAheadOfPortal = 10.0f;
-
-	/** Place the actor ahead of the portal so it doesn't spawn on the wall */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
-	float ThresholdBehindPortal = 0.5f;
+	float CameraDistance = 8.0f;
 
 	/** Reference to the player's camera manager for properly showing
 	 * TextureRenderTarget2D contents */
@@ -128,16 +132,27 @@ protected:
 
 	/** Array that contains information if the player is currently inside a portal
 	 *  to avoid spam teleport */
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	TArray<AActor*> PlayersInPortal;
 
 	/** Checks last actor in front */
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
 	bool bLastInFront;
 
+	/** Checks if overlapping */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal")
+	bool bIsOverlapping;
+
 	/** Threshold for teleporting player */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "false"))
 	FVector LastPosition;
+
+	/** Reference to the player character */
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Portal")
+	AGEIIProjectCharacter* PlayerCharacterReference;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Portal", meta = (AllowPrivateAccess = "true"))
+	float DelayTimer = 0.1f;
 
 public:	
 	// Called every frame
@@ -145,11 +160,11 @@ public:
 
 	/** Called when another actors starts overlapping with this actor */
 	UFUNCTION(BlueprintCallable, Category = "Portal")
-	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	void OnBoxBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	/** Called when another actors stops overlapping with this actor */
 	UFUNCTION(BlueprintCallable, Category = "Portal")
-	void OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	void OnBoxEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 protected:
 	/** Method that will check if the player can teleport */
@@ -159,4 +174,7 @@ protected:
 	/** Method that will teleport the player */
 	UFUNCTION(BlueprintCallable, Category = "Portal")
 	void TeleportPlayer(AGEIIProjectCharacter* PlayerCharacter);
+	
+	UFUNCTION(BlueprintCallable, Category = "Portal")
+	void MoveActor();
 };

@@ -72,7 +72,7 @@ AGEIIProjectCharacter::AGEIIProjectCharacter()
 	// Default offset from the character location for projectiles to spawn
 	GunOffset = FVector(100.0f, 0.0f, 10.0f);
 
-	PortalComponent = CreateDefaultSubobject<UGEIIProjectPortalComponent>(TEXT("PortalComponent"));
+	//PortalComponent = CreateDefaultSubobject<UGEIIProjectPortalComponent>(TEXT("PortalComponent"));
 }
 
 void AGEIIProjectCharacter::BeginPlay()
@@ -92,6 +92,9 @@ void AGEIIProjectCharacter::BeginPlay()
 		
 	// Add our ObjectTypeQuery8 into the array 
 	ObjectsToTraceAsByte.Add(TraceObjectTypes);
+	
+	GameStateReference = Cast<AGEIIProjectGameState>(GetWorld()->GetGameState());
+	PortalManagerReference = GameStateReference->GetPortalManagerReference();
 }
 
 void AGEIIProjectCharacter::Tick(float DeltaSeconds)
@@ -100,17 +103,18 @@ void AGEIIProjectCharacter::Tick(float DeltaSeconds)
 	
 	FVector Location = FirstPersonCameraComponent->GetComponentLocation();
 	FVector ForwardVector = FirstPersonCameraComponent->GetForwardVector();
-	EndLocation = Location + (ForwardVector * PortalComponent->GetMaxSpawnDistance());	
+	EndLocation = Location + (ForwardVector * PortalManagerReference->GetMaxSpawnDistance());	
 
 	// Returns if LineTrace has hit our ObjectTypeQuery8 or not
 	bool bHit = GetWorld()->LineTraceSingleByObjectType(Hit, Location, EndLocation, ObjectsToTraceAsByte, TraceParams);
+	
 	if(bHit)
 	{
-		HUDReference->SetOpaqueCrosshair();
+		//HUDReference->SetOpaqueCrosshair();
 	}
 	else if(!bHit)
 	{
-		HUDReference->SetTransparentCrosshair();
+		//HUDReference->SetTransparentCrosshair();
 	}
 }
 
@@ -197,7 +201,7 @@ void AGEIIProjectCharacter::OnLeftClick()
 	OnFire(true);
 	FVector Location = FirstPersonCameraComponent->GetComponentLocation();
 	FVector ForwardVector = FirstPersonCameraComponent->GetForwardVector();
-	PortalComponent->SpawnPortalAlongVector(Location, ForwardVector, true);
+	PortalManagerReference->SpawnPortalAlongVector(Location, ForwardVector, true, GetController());
 }
 
 void AGEIIProjectCharacter::OnRightClick()
@@ -205,7 +209,7 @@ void AGEIIProjectCharacter::OnRightClick()
 	OnFire(false);
 	FVector Location = FirstPersonCameraComponent->GetComponentLocation();
 	FVector ForwardVector = FirstPersonCameraComponent->GetForwardVector();
-	PortalComponent->SpawnPortalAlongVector(Location, ForwardVector, false);
+	PortalManagerReference->SpawnPortalAlongVector(Location, ForwardVector, false, GetController());
 }
 
 void AGEIIProjectCharacter::MoveForward(float Value)
